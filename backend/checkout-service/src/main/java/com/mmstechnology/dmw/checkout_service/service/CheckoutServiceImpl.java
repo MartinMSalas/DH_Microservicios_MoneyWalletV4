@@ -23,6 +23,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         Double total = 0.0;
         for(String id : productsIds) {
             ProductDto product = productService.getProductById(id);
+            System.out.println("Response from product-service instance: " + product.getInstance());
             total += product.getPrice();
         }
         CheckoutDto checkoutDto = new CheckoutDto("234","www.digitalhouse.com/checkout?code=234",total.toString(),List.of("credit card","paypal"));
