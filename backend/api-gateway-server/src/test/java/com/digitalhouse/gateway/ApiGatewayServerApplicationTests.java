@@ -1,10 +1,10 @@
-package com.mmstechnology.dmw.api_gateway;
+package com.digitalhouse.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApiGatewayApplicationTests {
+class ApiGatewayServerApplicationTests {
 
 	@Test
 	void contextLoads() {
