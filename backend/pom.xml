@@ -42,7 +42,7 @@
   <modules>
     <module>api-eureka-server</module>
     <module>api-config-server</module>
-    <module>api-gateway</module>
+    <module>api-gateway-server</module>
     <module>product-service</module>
     <module>checkout-service</module>
     <!-- <module>api-eureka-server</module>
