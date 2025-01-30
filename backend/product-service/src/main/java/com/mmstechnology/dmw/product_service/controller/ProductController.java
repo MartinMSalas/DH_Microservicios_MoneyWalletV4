@@ -12,6 +12,6 @@ public class ProductController {
 
     @GetMapping
     public ProductDto getProduct(@RequestParam String id) {
-        return new ProductDto(id, "Product - notebook", 2000.0,"2");
+        return new ProductDto(id, "Product - notebook", 2000.0,"1");
     }
 }
