@@ -2,10 +2,7 @@ package com.mmstechnology.dmw.checkout_service.controller;
 
 import com.mmstechnology.dmw.checkout_service.model.dto.CheckoutDto;
 import com.mmstechnology.dmw.checkout_service.service.CheckoutService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,7 +17,11 @@ public class CheckoutController {
     }
 
     @GetMapping
-    public CheckoutDto getCheckout(@RequestParam List<String> productsIds) {
+    public CheckoutDto getCheckout(@RequestParam List<String> productsIds, @RequestHeader("X-Request-from") String requestFrom) {
+        System.out.println("Request from: " + requestFrom);
+        if(!requestFrom.equals("Gateway")) {
+            throw new RuntimeException("Unauthorized access");
+        }
         return checkoutService.buildCheckout(productsIds);
     }
 }

@@ -17,7 +17,7 @@ public class CustomFilter implements GlobalFilter{
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-		logger.info("Solicitud hacia : "+ exchange.getRequest().getPath());
+		logger.info("Request to: "+ exchange.getRequest().getPath());
 		
 		return chain.filter(exchange);
 	}
