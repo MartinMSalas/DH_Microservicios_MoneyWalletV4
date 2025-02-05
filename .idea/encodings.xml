@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/backend/api-eureka-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/api-gateway-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/api-keycloak-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/checkout-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/product-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/backend/src/main/java" charset="UTF-8" />
