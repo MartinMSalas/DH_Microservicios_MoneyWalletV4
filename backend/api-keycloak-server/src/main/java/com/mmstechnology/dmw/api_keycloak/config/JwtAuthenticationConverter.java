@@ -1,7 +1,5 @@
 package com.mmstechnology.dmw.api_keycloak.config;
 
-
-import jakarta.annotation.Nonnull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -14,75 +12,63 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Component
-public class JwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
+public class JwtAuthenticationConverter implements Converter<Jwt,AbstractAuthenticationToken> {
 
-    private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
-    @Value("${jwt.oauth2.converter.principle.attribute}")
+    private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+
+    @Value("${jwt.auth.converter.principle-attribute")
     private String principleAttribute;
-    @Value("${jwt.oauth2.converter.resource-id}")
+
+    @Value("${jwt.auth.converter.resource-id}")
     private String resourceId;
 
-    public JwtAuthenticationConverter(JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter) {
-        this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
-    }
-
-
     @Override
-    public AbstractAuthenticationToken convert(@Nonnull Jwt jwt) {
-        Collection<GrantedAuthority> authorities = Stream.concat(
-                jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
-                extractResourceRoles(jwt).stream()
-        ).collect(Collectors.toList());
-
-        return new JwtAuthenticationToken(jwt, authorities, getPrincipleAttribute(jwt));
-    }
-
-
-    private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
-
-
-
-        Map<String, Object> resourceAccess; // = jwt.getClaimAsMap("resource_access");
-        Map<String, Object> resource;
-        Collection<String> resourceRoles;
-
-        if(jwt.getClaim("resource_access")== null){
-            return List.of();
-        }
-        resourceAccess = jwt.getClaimAsMap("resource_access");
-
-        if(resourceAccess.get(resourceId)==null){
-            return List.of();
-        }
-        // Cast the object to a map representing the resource details.
-        resource = (Map<String, Object>) resourceAccess.get(resourceId);
-        if(resource.get("roles")==null){
-            return List.of();
-        }
-        resourceRoles = (Collection<String>) resource.get("roles");
-        return resourceRoles
-                .stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_".concat(role)))
+    public AbstractAuthenticationToken convert(Jwt source) {
+        Collection<GrantedAuthority> authorities = Stream
+                .concat(jwtGrantedAuthoritiesConverter.convert(source).stream(), extractResourceRoles(source).stream())
                 .toList();
+
+        return new JwtAuthenticationToken(source, authorities, getPrincipleName(source));
     }
 
-    @Override
-    public <U> Converter<Jwt, U> andThen(Converter<? super AbstractAuthenticationToken, ? extends U> after) {
-        return Converter.super.andThen(after);
-    }
-
-    private String getPrincipleAttribute(Jwt jwt){
+    private String getPrincipleName(Jwt source) {
         String claimName = JwtClaimNames.SUB;
+
         if(principleAttribute != null){
             claimName = principleAttribute;
         }
-        return jwt.getClaimAsString(claimName);
 
+        return source.getClaim(claimName);
+    }
+
+    private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt source){
+        Map<String, Object> resourceAccess;
+        Map<String, Object> resource;
+        Collection<String> resourceRoles;
+
+        if(source.getClaim("resource_access")== null){
+            return Set.of();
+        }
+        resourceAccess = source.getClaim("resource_access");
+
+        if(resourceAccess.get(resourceId)==null){
+            return Set.of();
+        }
+        resource = (Map<String,Object>) resourceAccess.get(resourceId);
+
+        if(resource.get("roles")==null){
+            return Set.of();
+        }
+
+        resourceRoles= (Collection<String>) resource.get("roles");
+
+        return resourceRoles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_"+role))
+                .toList();
     }
 }
