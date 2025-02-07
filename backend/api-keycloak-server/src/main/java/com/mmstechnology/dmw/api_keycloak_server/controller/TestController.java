@@ -1,4 +1,4 @@
-package com.mmstechnology.dmw.api_keycloak.controller;
+package com.mmstechnology.dmw.api_keycloak_server.controller;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;

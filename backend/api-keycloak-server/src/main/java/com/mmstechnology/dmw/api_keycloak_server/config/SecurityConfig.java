@@ -1,4 +1,4 @@
-package com.mmstechnology.dmw.api_keycloak.config;
+package com.mmstechnology.dmw.api_keycloak_server.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,10 +1,10 @@
-package com.mmstechnology.dmw.api_keycloak.util;
+package com.mmstechnology.dmw.api_keycloak_server.util;
 
 import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientBuilderImpl;
-import org.jboss.resteasy.client.jaxrs.internal.ResteasyClientImpl;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UsersResource;
 
 public class KeycloakProvider {
 
@@ -29,6 +29,12 @@ public class KeycloakProvider {
                         .connectionPoolSize(10)
                         .build())
                 .build();
+
+        return keycloak.realm(REALM_NAME);
     }
 
+    public static UsersResource getUserResource(){
+        RealmResource realmResource = getRealmResource();
+        return realmResource.users();
+    }
 }

@@ -1,4 +1,4 @@
-package com.mmstechnology.dmw.api_keycloak.config;
+package com.mmstechnology.dmw.api_keycloak_server.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.convert.converter.Converter;
