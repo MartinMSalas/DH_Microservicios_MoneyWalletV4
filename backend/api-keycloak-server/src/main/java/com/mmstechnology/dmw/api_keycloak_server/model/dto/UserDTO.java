@@ -8,7 +8,7 @@ import java.util.Set;
 
 
 @Builder
-public record UserDTO(String username, String email, String firstName, String lastName, String password,
+public record UserDTO(String userId, String username, String email, String firstName, String lastName, String password,
                       Set<String> roles) {
 
 }

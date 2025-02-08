@@ -23,6 +23,7 @@ public class UserMapper {
      */
     public static UserDTO toUserDTO(UserRepresentation userRepresentation, Set<String> roles) {
         return UserDTO.builder()
+                .userId(userRepresentation.getId())
                 .username(userRepresentation.getUsername())
                 .email(userRepresentation.getEmail())
                 .firstName(userRepresentation.getFirstName())
