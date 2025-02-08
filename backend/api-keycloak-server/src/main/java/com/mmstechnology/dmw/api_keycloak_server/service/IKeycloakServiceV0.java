@@ -5,12 +5,13 @@ import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
 
-public interface IKeycloakService {
+public interface IKeycloakServiceV0 {
 
-    List<UserDTO> findAllUsers();
-    List<UserDTO> searchUserByUsername(String username);
+    List<UserRepresentation> findAllUsers();
+    List<UserRepresentation> searchUserByUsername(String username);
 
     String createUser(UserDTO userDTO);
     void deleteUser(String userId);
     void updateUser(String userId, UserDTO userDTO);
 }
+

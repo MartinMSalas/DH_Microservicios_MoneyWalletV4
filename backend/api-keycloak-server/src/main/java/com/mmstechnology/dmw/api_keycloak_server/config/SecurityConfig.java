@@ -23,7 +23,9 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
             .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests ( http -> http.anyRequest().authenticated() )
+            .authorizeHttpRequests ( http -> http
+                    .requestMatchers("/actuator/**", "/eureka/**").permitAll()
+                    .anyRequest().authenticated() )
             .oauth2ResourceServer(oauth -> {oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter));})
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .build();

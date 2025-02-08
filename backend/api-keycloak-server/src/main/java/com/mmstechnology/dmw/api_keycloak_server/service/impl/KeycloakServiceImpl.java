@@ -2,6 +2,7 @@ package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
+import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
@@ -12,11 +13,13 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
-public class KeycloakServiceImpl implements IKeycloakService {
+//@Service
+public class KeycloakServiceImpl implements IKeycloakServiceV0 {
 
     /**
      * Method to find all user of Keycloak

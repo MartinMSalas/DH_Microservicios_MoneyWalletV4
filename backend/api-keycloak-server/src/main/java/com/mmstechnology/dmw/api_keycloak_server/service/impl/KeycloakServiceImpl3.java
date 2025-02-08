@@ -1,10 +1,13 @@
 package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
+
+
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
-import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
+import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
+import com.mmstechnology.dmw.api_keycloak_server.util.mapper.UserMapper;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
@@ -15,39 +18,46 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Implementation of Keycloak user management service.
- * <p>
- * ✅ Follows best practices:
- * - Modular helper methods for DTO mapping, user ID extraction, credential creation, and role assignment.
- * - Structured exception handling with detailed logging.
- * - Uses `Set<>` for efficient role lookup.
- * - Ensures **high maintainability** and **performance optimization**.
- */
-
+@Service
 @Slf4j
-public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
-
+public class KeycloakServiceImpl3 implements IKeycloakService {
 
     private static final boolean ENABLE_USER_IMMEDIATELY = true;
     private static final String DEFAULT_ROLE = "user";
 
     @Override
-    public List<UserRepresentation> findAllUsers() {
+    public List<UserDTO> findAllUsers() {
         log.info("Fetching all users from Keycloak...");
-        return KeycloakProvider.getRealmResource().users().list();
+        RealmResource realm = KeycloakProvider.getRealmResource();
+        List<UserRepresentation> users = realm.users().list();
+
+        List<Set<String>> userRoles = users.stream()
+                .map(user -> realm.users().get(user.getId()).roles().realmLevel().listEffective()
+                        .stream().map(RoleRepresentation::getName).collect(Collectors.toSet()))
+                .collect(Collectors.toList());
+
+        return UserMapper.toUserDTOList(users, userRoles);
     }
 
     @Override
-    public List<UserRepresentation> searchUserByUsername(String username) {
+    public List<UserDTO> searchUserByUsername(String username) {
         log.info("Searching users with username: {}", username);
-        return KeycloakProvider.getRealmResource().users().searchByUsername(username, true);
+        RealmResource realm = KeycloakProvider.getRealmResource();
+        List<UserRepresentation> users = realm.users().searchByUsername(username, true);
+
+        List<Set<String>> userRoles = users.stream()
+                .map(user -> realm.users().get(user.getId()).roles().realmLevel().listEffective()
+                        .stream().map(RoleRepresentation::getName).collect(Collectors.toSet()))
+                .collect(Collectors.toList());
+
+        return UserMapper.toUserDTOList(users, userRoles);
     }
 
     @Override
@@ -55,7 +65,7 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         log.info("Creating new user: {}", userDTO.username());
 
         UsersResource usersResource = KeycloakProvider.getUserResource();
-        UserRepresentation userRepresentation = createUserRepresentation(userDTO);
+        UserRepresentation userRepresentation = UserMapper.toUserRepresentation(userDTO);
 
         Response response = usersResource.create(userRepresentation);
 
@@ -77,13 +87,8 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
     @Override
     public void deleteUser(String userId) {
         log.info("Deleting user with ID: {}", userId);
-        try {
-            KeycloakProvider.getUserResource().get(userId).remove();
-            log.info("User {} deleted successfully", userId);
-        } catch (Exception e) {
-            log.error("Failed to delete user with ID: {}", userId, e);
-            throw new RuntimeException("Failed to delete user", e);
-        }
+        KeycloakProvider.getUserResource().get(userId).remove();
+        log.info("User {} deleted successfully", userId);
     }
 
     @Override
@@ -91,7 +96,7 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         log.info("Updating user with ID: {}", userId);
 
         UserResource userResource = KeycloakProvider.getUserResource().get(userId);
-        UserRepresentation updatedUserRepresentation = createUserRepresentation(userDTO);
+        UserRepresentation updatedUserRepresentation = UserMapper.toUserRepresentation(userDTO);
 
         if (userDTO.password() != null && !userDTO.password().isBlank()) {
             setUserPassword(userId, userDTO.password());
@@ -101,23 +106,6 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         log.info("User {} updated successfully", userId);
     }
 
-    /**
-     * ✅ Maps a `UserDTO` to `UserRepresentation`.
-     */
-    private UserRepresentation createUserRepresentation(UserDTO userDTO) {
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setUsername(userDTO.username());
-        userRepresentation.setEmail(userDTO.email());
-        userRepresentation.setFirstName(userDTO.firstName());
-        userRepresentation.setLastName(userDTO.lastName());
-        userRepresentation.setEnabled(ENABLE_USER_IMMEDIATELY);
-        userRepresentation.setEmailVerified(ENABLE_USER_IMMEDIATELY);
-        return userRepresentation;
-    }
-
-    /**
-     * ✅ Sets the password for a given user.
-     */
     private void setUserPassword(String userId, String password) {
         log.info("Setting password for user ID: {}", userId);
         CredentialRepresentation credential = createCredential(password);
@@ -125,9 +113,6 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         userResource.resetPassword(credential);
     }
 
-    /**
-     * ✅ Creates a password credential representation.
-     */
     private CredentialRepresentation createCredential(String password) {
         CredentialRepresentation credential = new CredentialRepresentation();
         credential.setTemporary(false);
@@ -136,12 +121,6 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         return credential;
     }
 
-    /**
-     * ✅ Assigns roles to a user. If no roles are provided, assigns the default role.
-     */
-    /**
-     * ✅ Assigns roles to a user. If no roles are provided, assigns the default role.
-     */
     private void assignRolesToUser(String userId, Set<String> roles) {
         log.info("Assigning roles {} to user ID: {}", roles, userId);
 
@@ -173,9 +152,6 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
         }
     }
 
-    /**
-     * ✅ Extracts the user ID from Keycloak's response.
-     */
     private String extractUserId(Response response) {
         return Optional.ofNullable(response.getLocation())
                 .map(loc -> loc.getPath().replaceAll(".*/([^/]+)$", "$1"))
