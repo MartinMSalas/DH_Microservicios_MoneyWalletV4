@@ -6,7 +6,7 @@ import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsExce
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
-import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
+import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProviderV2;
 import com.mmstechnology.dmw.api_keycloak_server.util.mapper.UserMapper;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
@@ -35,7 +35,8 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     @Override
     public List<UserDTO> findAllUsers() {
         log.info("Fetching all users from Keycloak...");
-        RealmResource realm = KeycloakProvider.getRealmResource();
+        RealmResource realm = KeycloakProviderV2.getRealmResource();
+        log.info("Using Access Token: {}", KeycloakProviderV2.getKeycloakInstance().tokenManager().getAccessToken().getToken());
         List<UserRepresentation> users = realm.users().list();
 
         List<Set<String>> userRoles = users.stream()
@@ -49,7 +50,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     @Override
     public List<UserDTO> searchUserByUsername(String username) {
         log.info("Searching users with username: {}", username);
-        RealmResource realm = KeycloakProvider.getRealmResource();
+        RealmResource realm = KeycloakProviderV2.getRealmResource();
         List<UserRepresentation> users = realm.users().searchByUsername(username, true);
 
         List<Set<String>> userRoles = users.stream()
@@ -64,7 +65,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     public String createUser(@Nonnull UserDTO userDTO) {
         log.info("Creating new user: {}", userDTO.username());
 
-        UsersResource usersResource = KeycloakProvider.getUserResource();
+        UsersResource usersResource = KeycloakProviderV2.getUserResource();
         UserRepresentation userRepresentation = UserMapper.toUserRepresentation(userDTO);
 
         Response response = usersResource.create(userRepresentation);
@@ -87,7 +88,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     @Override
     public void deleteUser(String userId) {
         log.info("Deleting user with ID: {}", userId);
-        KeycloakProvider.getUserResource().get(userId).remove();
+        KeycloakProviderV2.getUserResource().get(userId).remove();
         log.info("User {} deleted successfully", userId);
     }
 
@@ -95,7 +96,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     public void updateUser(String userId, @Nonnull UserDTO userDTO) {
         log.info("Updating user with ID: {}", userId);
 
-        UserResource userResource = KeycloakProvider.getUserResource().get(userId);
+        UserResource userResource = KeycloakProviderV2.getUserResource().get(userId);
         UserRepresentation updatedUserRepresentation = UserMapper.toUserRepresentation(userDTO);
 
         if (userDTO.password() != null && !userDTO.password().isBlank()) {
@@ -109,7 +110,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     private void setUserPassword(String userId, String password) {
         log.info("Setting password for user ID: {}", userId);
         CredentialRepresentation credential = createCredential(password);
-        UserResource userResource = KeycloakProvider.getUserResource().get(userId);
+        UserResource userResource = KeycloakProviderV2.getUserResource().get(userId);
         userResource.resetPassword(credential);
     }
 
@@ -124,7 +125,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     private void assignRolesToUser(String userId, Set<String> roles) {
         log.info("Assigning roles {} to user ID: {}", roles, userId);
 
-        RealmResource realmResource = KeycloakProvider.getRealmResource();
+        RealmResource realmResource = KeycloakProviderV2.getRealmResource();
         List<RoleRepresentation> roleRepresentations;
 
         if (roles == null || roles.isEmpty()) {

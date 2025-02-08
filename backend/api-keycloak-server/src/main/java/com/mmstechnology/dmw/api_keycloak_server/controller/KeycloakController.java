@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/keycloak/user")
 //@PreAuthorize("hasRole('admin_client_role')")
+
 @PreAuthorize("hasRole('admin_client_role')")
 public class KeycloakController {
 
