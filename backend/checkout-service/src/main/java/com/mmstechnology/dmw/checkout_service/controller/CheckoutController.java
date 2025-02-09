@@ -5,6 +5,7 @@ import com.mmstechnology.dmw.checkout_service.service.CheckoutService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/checkout")
@@ -16,8 +17,14 @@ public class CheckoutController {
         this.checkoutService = checkoutService;
     }
 
+
+    @GetMapping("/{id}")
+    public CheckoutDto getById(@PathVariable String id){
+        return new CheckoutDto(id,"asd","asd", List.of());
+    }
+
     @GetMapping
-    public CheckoutDto getCheckout(@RequestParam List<String> productsIds, @RequestHeader("X-Request-from") String requestFrom) {
+    public CheckoutDto getCheckout(@RequestParam List<String> productsIds, @RequestHeader("X-Request-from") String requestFrom, @RequestHeader() Map<String, String> headers) {
         System.out.println("Request from: " + requestFrom);
         if(!requestFrom.equals("Gateway")) {
             throw new RuntimeException("Unauthorized access");
