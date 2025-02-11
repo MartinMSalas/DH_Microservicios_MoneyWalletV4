@@ -39,7 +39,7 @@ public class ProductServiceImpl implements ProductService {
        // log.info("🔍 Circuit Breaker State Before Call: " + circuitBreaker.getState());
 
         try {
-            ResponseEntity<ProductDto> response = feignProductRepository.getProductById(id, true);
+            ResponseEntity<ProductDto> response = feignProductRepository.getProductById(id, false);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
                 log.error("❌ Feign call failed with status: " + response.getStatusCode());
