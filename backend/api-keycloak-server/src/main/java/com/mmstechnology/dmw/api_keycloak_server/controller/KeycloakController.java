@@ -6,6 +6,8 @@ import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserNotFoundException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
+import com.mmstechnology.dmw.api_keycloak_server.util.CvuGenerator;
+import com.mmstechnology.dmw.api_keycloak_server.util.AliasGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -128,5 +130,40 @@ public class KeycloakController {
         }
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
+        log.info("Registering user: {}", userDTO.username());
 
+        // Validate user data
+        if (userDTO.username() == null || userDTO.username().isEmpty() ||
+            userDTO.email() == null || userDTO.email().isEmpty() ||
+            userDTO.firstName() == null || userDTO.firstName().isEmpty() ||
+            userDTO.lastName() == null || userDTO.lastName().isEmpty() ||
+            userDTO.password() == null || userDTO.password().isEmpty()) {
+            log.warn("Invalid or incomplete user data for user: {}", userDTO.username());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid or incomplete user data.");
+        }
+
+        // Assign CVU and Alias
+        String cvu = CvuGenerator.generateCvu();
+        String alias = AliasGenerator.generateAlias();
+
+        // Register user in Keycloak
+        try {
+            userDTO = new UserDTO(userDTO.userId(), userDTO.username(), userDTO.email(), userDTO.firstName(), userDTO.lastName(), userDTO.password(), userDTO.roles());
+            String response = keycloakService.registerUser(userDTO);
+            log.info("User {} registered successfully.", userDTO.username());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(response);
+        } catch (UserAlreadyExistsException e) {
+            log.warn("User registration failed: User {} already exists.", userDTO.username());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("User '" + userDTO.username() + "' already exists.");
+        } catch (UserCreationException e) {
+            log.error("User registration failed due to internal error.", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to register user: " + e.getMessage());
+        }
+    }
 }

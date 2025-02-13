@@ -1,11 +1,15 @@
 package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
+import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
+import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
-import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
+import com.mmstechnology.dmw.api_keycloak_server.util.CvuGenerator;
+import com.mmstechnology.dmw.api_keycloak_server.util.AliasGenerator;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
@@ -17,148 +21,182 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-//@Service
-public class KeycloakServiceImpl implements IKeycloakServiceV0 {
+@Service
+@Slf4j
+public class KeycloakServiceImpl implements IKeycloakService {
 
-    /**
-     * Method to find all user of Keycloak
-     * @return List<UserRepresentation>
-     */
+    private static final boolean ENABLE_USER_IMMEDIATELY = true;
+    private static final String DEFAULT_ROLE = "user";
+
     @Override
-    public List<UserRepresentation> findAllUsers() {
-        return KeycloakProvider.getRealmResource()
-                .users()
-                .list();
+    public List<UserDTO> findAllUsers() {
+        log.info("Fetching all users from Keycloak...");
+        RealmResource realm = KeycloakProvider.getRealmResource();
+        List<UserRepresentation> users = realm.users().list();
 
+        List<Set<String>> userRoles = users.stream()
+                .map(user -> realm.users().get(user.getId()).roles().realmLevel().listEffective()
+                        .stream().map(RoleRepresentation::getName).collect(Collectors.toSet()))
+                .collect(Collectors.toList());
+
+        return users.stream()
+                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), null, userRoles.get(users.indexOf(user))))
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Method to search user by username
-     *
-     * @param username
-     * @return List<UserRepresentation>
-     */
     @Override
-    public List<UserRepresentation> searchUserByUsername(String username) {
-        return KeycloakProvider.getRealmResource()
-                .users()
-                .searchByUsername(username,true);
+    public List<UserDTO> searchUserByUsername(String username) {
+        log.info("Searching users with username: {}", username);
+        RealmResource realm = KeycloakProvider.getRealmResource();
+        List<UserRepresentation> users = realm.users().searchByUsername(username, true);
 
+        List<Set<String>> userRoles = users.stream()
+                .map(user -> realm.users().get(user.getId()).roles().realmLevel().listEffective()
+                        .stream().map(RoleRepresentation::getName).collect(Collectors.toSet()))
+                .collect(Collectors.toList());
 
+        return users.stream()
+                .map(user -> new UserDTO(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), null, userRoles.get(users.indexOf(user))))
+                .collect(Collectors.toList());
     }
 
-    /**
-     * Method to create user
-     *
-     * @param userDTO
-     * @return String
-     */
     @Override
     public String createUser(@Nonnull UserDTO userDTO) {
-        int status = 0;
-        UsersResource userResource = KeycloakProvider.getUserResource();
+        log.info("Creating new user: {}", userDTO.username());
+
+        UsersResource usersResource = KeycloakProvider.getUserResource();
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(userDTO.username());
         userRepresentation.setEmail(userDTO.email());
         userRepresentation.setFirstName(userDTO.firstName());
         userRepresentation.setLastName(userDTO.lastName());
-        // Determine based on business needs: if immediate user activation is desired, set true;
-        // otherwise, it remains false to allow for email verification or admin review.
-        boolean enableUserImmediately = true; // Change this flag if needed.
-        userRepresentation.setEnabled(enableUserImmediately);
-        userRepresentation.setEmailVerified(enableUserImmediately);
+        userRepresentation.setEnabled(ENABLE_USER_IMMEDIATELY);
+        userRepresentation.setEmailVerified(ENABLE_USER_IMMEDIATELY);
 
-        Response response = userResource.create(userRepresentation);
-        if (response.getStatus() == 201) {
-            String path = response.getLocation().getPath();
-            // Extract the created user ID from the location header using a regex.
-            String userId = response.getLocation().getPath().replaceAll(".*/([^/]+)$", "$1");
+        Response response = usersResource.create(userRepresentation);
 
-            CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-            credentialRepresentation.setTemporary(false);
-            credentialRepresentation.setType(OAuth2Constants.PASSWORD);
-            credentialRepresentation.setValue(userDTO.password());
-
-            UserResource user = userResource.get(userId);
-            user.resetPassword(credentialRepresentation);
-
-            RealmResource realmResource = KeycloakProvider.getRealmResource();
-
-            List<RoleRepresentation> roleRepresentations = null;
-
-            if(userDTO.roles() == null || userDTO.roles().isEmpty()){
-                roleRepresentations = List.of(realmResource.roles().get("user").toRepresentation());
-
-            } else{
-                roleRepresentations = realmResource.roles()
-                        .list()
-                        .stream()
-                        .filter(role -> userDTO.roles()
-                                .stream()
-                                .anyMatch(roleName -> roleName.equalsIgnoreCase(role.getName())))
-                        .toList();
-                realmResource.users()
-                        .get(userId)
-                        .roles()
-                        .realmLevel()
-                        .add(roleRepresentations);
-
-                return "User created successfully !";
-            }
-
-        } else if(status==409){
-
-            return "User already exist";
-
-
-        }
-        else {
-            throw new RuntimeException("Failed to create user: " + response.getStatusInfo());
+        if (response.getStatus() == Response.Status.CONFLICT.getStatusCode()) {
+            throw new UserAlreadyExistsException("User already exists: " + userDTO.username());
+        } else if (response.getStatus() != Response.Status.CREATED.getStatusCode()) {
+            throw new UserCreationException("Failed to create user, status: " + response.getStatus());
         }
 
-        return "";
+        String userId = extractUserId(response);
+        log.info("User created successfully with ID: {}", userId);
+
+        setUserPassword(userId, userDTO.password());
+        assignRolesToUser(userId, userDTO.roles());
+
+        return "User created successfully!";
     }
 
-    /**
-     * Method to delete user
-     * @param userId
-     */
     @Override
     public void deleteUser(String userId) {
-        KeycloakProvider.getUserResource()
-                .get(userId)
-                .remove();
+        log.info("Deleting user with ID: {}", userId);
+        KeycloakProvider.getUserResource().get(userId).remove();
+        log.info("User {} deleted successfully", userId);
     }
 
-    /**
-     * Method to update user
-     *
-     * @param userId
-     * @param userDTO
-     */
     @Override
-    public void updateUser(String userId,@Nonnull UserDTO userDTO) {
-        CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
-        credentialRepresentation.setTemporary(false);
-        credentialRepresentation.setType(OAuth2Constants.PASSWORD);
-        credentialRepresentation.setValue(userDTO.password());
-
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setUsername(userDTO.username());
-        userRepresentation.setEmail(userDTO.email());
-        userRepresentation.setFirstName(userDTO.firstName());
-        userRepresentation.setLastName(userDTO.lastName());
-
-        // Determine based on business needs: if immediate user activation is desired, set true;
-        // otherwise, it remains false to allow for email verification or admin review.
-        boolean enableUserImmediately = true; // Change this flag if needed.
-        userRepresentation.setEnabled(enableUserImmediately);
-        userRepresentation.setEmailVerified(enableUserImmediately);
-
-        userRepresentation.setCredentials(Collections.singletonList(credentialRepresentation));
+    public void updateUser(String userId, @Nonnull UserDTO userDTO) {
+        log.info("Updating user with ID: {}", userId);
 
         UserResource userResource = KeycloakProvider.getUserResource().get(userId);
-        userResource.update(userRepresentation);
+        UserRepresentation updatedUserRepresentation = new UserRepresentation();
+        updatedUserRepresentation.setUsername(userDTO.username());
+        updatedUserRepresentation.setEmail(userDTO.email());
+        updatedUserRepresentation.setFirstName(userDTO.firstName());
+        updatedUserRepresentation.setLastName(userDTO.lastName());
+        updatedUserRepresentation.setEnabled(ENABLE_USER_IMMEDIATELY);
+        updatedUserRepresentation.setEmailVerified(ENABLE_USER_IMMEDIATELY);
+
+        if (userDTO.password() != null && !userDTO.password().isBlank()) {
+            setUserPassword(userId, userDTO.password());
+        }
+
+        userResource.update(updatedUserRepresentation);
+        log.info("User {} updated successfully", userId);
+    }
+
+    @Override
+    public String registerUser(UserDTO userDTO) {
+        log.info("Registering user: {}", userDTO.username());
+
+        // Validate user data
+        if (userDTO.username() == null || userDTO.username().isEmpty() ||
+            userDTO.email() == null || userDTO.email().isEmpty() ||
+            userDTO.firstName() == null || userDTO.firstName().isEmpty() ||
+            userDTO.lastName() == null || userDTO.lastName().isEmpty() ||
+            userDTO.password() == null || userDTO.password().isEmpty()) {
+            log.warn("Invalid or incomplete user data for user: {}", userDTO.username());
+            throw new UserCreationException("Invalid or incomplete user data.");
+        }
+
+        // Assign CVU and Alias
+        String cvu = CvuGenerator.generateCvu();
+        String alias = AliasGenerator.generateAlias();
+
+        // Register user in Keycloak
+        try {
+            userDTO = new UserDTO(userDTO.userId(), userDTO.username(), userDTO.email(), userDTO.firstName(), userDTO.lastName(), userDTO.password(), userDTO.roles());
+            return createUser(userDTO);
+        } catch (UserAlreadyExistsException e) {
+            log.warn("User registration failed: User {} already exists.", userDTO.username());
+            throw e;
+        } catch (UserCreationException e) {
+            log.error("User registration failed due to internal error.", e);
+            throw e;
+        }
+    }
+
+    private void setUserPassword(String userId, String password) {
+        log.info("Setting password for user ID: {}", userId);
+        CredentialRepresentation credential = new CredentialRepresentation();
+        credential.setTemporary(false);
+        credential.setType(OAuth2Constants.PASSWORD);
+        credential.setValue(password);
+        UserResource userResource = KeycloakProvider.getUserResource().get(userId);
+        userResource.resetPassword(credential);
+    }
+
+    private void assignRolesToUser(String userId, Set<String> roles) {
+        log.info("Assigning roles {} to user ID: {}", roles, userId);
+
+        RealmResource realmResource = KeycloakProvider.getRealmResource();
+        List<RoleRepresentation> roleRepresentations;
+
+        if (roles == null || roles.isEmpty()) {
+            RoleRepresentation defaultRole = realmResource.roles().get(DEFAULT_ROLE).toRepresentation();
+            roleRepresentations = List.of(defaultRole);
+        } else {
+            roleRepresentations = roles.stream()
+                    .map(roleName -> {
+                        try {
+                            return realmResource.roles().get(roleName).toRepresentation();
+                        } catch (Exception e) {
+                            log.warn("Role {} not found in Keycloak", roleName);
+                            return null;
+                        }
+                    })
+                    .filter(role -> role != null)
+                    .collect(Collectors.toList());
+        }
+
+        if (!roleRepresentations.isEmpty()) {
+            realmResource.users().get(userId).roles().realmLevel().add(roleRepresentations);
+            log.info("Assigned roles [{}] to user {}", roleRepresentations.stream().map(RoleRepresentation::getName).collect(Collectors.joining(", ")), userId);
+        } else {
+            log.warn("No matching roles found to assign to user ID: {}", userId);
+        }
+    }
+
+    private String extractUserId(Response response) {
+        return Optional.ofNullable(response.getLocation())
+                .map(loc -> loc.getPath().replaceAll(".*/([^/]+)$", "$1"))
+                .orElseThrow(() -> new UserCreationException("Unable to extract user ID from response location."));
     }
 }
