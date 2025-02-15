@@ -7,8 +7,10 @@ import java.util.Set;
 
 @Data
 @EntityScan
-public class User {
+public class CompositeUser {
+
     String userId;
+
     String username;
     String email;
     String firstName;

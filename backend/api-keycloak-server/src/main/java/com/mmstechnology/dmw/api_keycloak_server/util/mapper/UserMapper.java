@@ -1,6 +1,6 @@
 package com.mmstechnology.dmw.api_keycloak_server.util.mapper;
 
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import java.util.List;
@@ -21,8 +21,8 @@ public class UserMapper {
      * @param userRepresentation The Keycloak user object.
      * @return UserDTO object.
      */
-    public static UserDTO toUserDTO(UserRepresentation userRepresentation, Set<String> roles) {
-        return UserDTO.builder()
+    public static CompositeUserDTO toUserDTO(UserRepresentation userRepresentation, Set<String> roles) {
+        return CompositeUserDTO.builder()
                 .userId(userRepresentation.getId())
                 .username(userRepresentation.getUsername())
                 .email(userRepresentation.getEmail())
@@ -38,7 +38,7 @@ public class UserMapper {
      * @param userRepresentations List of Keycloak UserRepresentation.
      * @return List of UserDTOs.
      */
-    public static List<UserDTO> toUserDTOList(List<UserRepresentation> userRepresentations, List<Set<String>> rolesList) {
+    public static List<CompositeUserDTO> toUserDTOList(List<UserRepresentation> userRepresentations, List<Set<String>> rolesList) {
         return userRepresentations.stream()
                 .map(user -> toUserDTO(user, rolesList.get(userRepresentations.indexOf(user))))
                 .collect(Collectors.toList());
@@ -49,7 +49,7 @@ public class UserMapper {
      * @param userDTO The UserDTO object.
      * @return UserRepresentation object.
      */
-    public static UserRepresentation toUserRepresentation(UserDTO userDTO) {
+    public static UserRepresentation toUserRepresentation(CompositeUserDTO userDTO) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(userDTO.username());
         userRepresentation.setEmail(userDTO.email());

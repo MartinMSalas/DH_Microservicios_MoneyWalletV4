@@ -4,7 +4,7 @@ package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProviderV2;
 import com.mmstechnology.dmw.api_keycloak_server.util.mapper.UserMapper;
@@ -33,7 +33,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     private static final String DEFAULT_ROLE = "user";
 
     @Override
-    public List<UserDTO> findAllUsers() {
+    public List<CompositeUserDTO> findAllUsers() {
         log.info("Fetching all users from Keycloak...");
         RealmResource realm = KeycloakProviderV2.getRealmResource();
         log.info("Using Access Token: {}", KeycloakProviderV2.getKeycloakInstance().tokenManager().getAccessToken().getToken());
@@ -48,7 +48,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     }
 
     @Override
-    public List<UserDTO> searchUserByUsername(String username) {
+    public List<CompositeUserDTO> searchUserByUsername(String username) {
         log.info("Searching users with username: {}", username);
         RealmResource realm = KeycloakProviderV2.getRealmResource();
         List<UserRepresentation> users = realm.users().searchByUsername(username, true);
@@ -62,7 +62,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     }
 
     @Override
-    public String createUser(@Nonnull UserDTO userDTO) {
+    public String createUser(@Nonnull CompositeUserDTO userDTO) {
         log.info("Creating new user: {}", userDTO.username());
 
         UsersResource usersResource = KeycloakProviderV2.getUserResource();
@@ -93,7 +93,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     }
 
     @Override
-    public void updateUser(String userId, @Nonnull UserDTO userDTO) {
+    public void updateUser(String userId, @Nonnull CompositeUserDTO userDTO) {
         log.info("Updating user with ID: {}", userId);
 
         UserResource userResource = KeycloakProviderV2.getUserResource().get(userId);

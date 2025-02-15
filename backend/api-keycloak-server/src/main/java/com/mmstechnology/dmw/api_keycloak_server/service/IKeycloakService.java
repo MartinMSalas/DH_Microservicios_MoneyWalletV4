@@ -1,16 +1,15 @@
 package com.mmstechnology.dmw.api_keycloak_server.service;
 
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
-import org.keycloak.representations.idm.UserRepresentation;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 
 import java.util.List;
 
 public interface IKeycloakService {
 
-    List<UserDTO> findAllUsers();
-    List<UserDTO> searchUserByUsername(String username);
+    List<CompositeUserDTO> findAllUsers();
+    List<CompositeUserDTO> searchUserByUsername(String username);
 
-    String createUser(UserDTO userDTO);
+    String createUser(CompositeUserDTO userDTO);
     void deleteUser(String userId);
-    void updateUser(String userId, UserDTO userDTO);
+    void updateUser(String userId, CompositeUserDTO userDTO);
 }

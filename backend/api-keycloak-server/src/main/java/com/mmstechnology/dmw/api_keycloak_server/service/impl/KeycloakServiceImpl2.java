@@ -2,7 +2,7 @@ package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
@@ -51,7 +51,7 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
     }
 
     @Override
-    public String createUser(@Nonnull UserDTO userDTO) {
+    public String createUser(@Nonnull CompositeUserDTO userDTO) {
         log.info("Creating new user: {}", userDTO.username());
 
         UsersResource usersResource = KeycloakProvider.getUserResource();
@@ -87,7 +87,7 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
     }
 
     @Override
-    public void updateUser(String userId, @Nonnull UserDTO userDTO) {
+    public void updateUser(String userId, @Nonnull CompositeUserDTO userDTO) {
         log.info("Updating user with ID: {}", userId);
 
         UserResource userResource = KeycloakProvider.getUserResource().get(userId);
@@ -104,7 +104,7 @@ public class KeycloakServiceImpl2 implements IKeycloakServiceV0 {
     /**
      * ✅ Maps a `UserDTO` to `UserRepresentation`.
      */
-    private UserRepresentation createUserRepresentation(UserDTO userDTO) {
+    private UserRepresentation createUserRepresentation(CompositeUserDTO userDTO) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(userDTO.username());
         userRepresentation.setEmail(userDTO.email());
