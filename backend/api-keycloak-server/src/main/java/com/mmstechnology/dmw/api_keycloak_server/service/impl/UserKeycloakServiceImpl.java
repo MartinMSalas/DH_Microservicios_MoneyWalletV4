@@ -1,45 +1,36 @@
-package com.mmstechnology.dmw.api_keycloak_server.controller;
+package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
+import com.mmstechnology.dmw.api_keycloak_server.repository.UserKeycloakRepository;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.service.IUserKeycloakService;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Slf4j
-@RestController
-@RequestMapping("/user/register")
-//@PreAuthorize("hasRole('admin_client_role')")
-//@PreAuthorize("hasRole('admin_client_role')")
-public class UserKeycloakController {
+@Service
+public class UserKeycloakServiceImpl implements IUserKeycloakService {
 
+    private final IKeycloakService keycloakService;
+    private final UserKeycloakRepository userKeycloakRepository;
 
-    //private final IKeycloakService keycloakService;
-    private final IUserKeycloakService userKeycloakService;
-
-    public UserKeycloakController(IKeycloakService keycloakService, IUserKeycloakService userKeycloakService) {
-        this.userKeycloakService = userKeycloakService;
-
+    public UserKeycloakServiceImpl(IKeycloakService keycloakService, UserKeycloakRepository userKeycloakRepository) {
+        this.keycloakService = keycloakService;
+        this.userKeycloakRepository = userKeycloakRepository;
     }
 
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody CompositeUserDTO userDTO) {
-        log.info("Creating user: {}", userDTO.username());
-
-        Optional<CompositeUserDTO> response = userKeycloakService.createUser(userDTO);
+    @Override
+    public Optional<CompositeUserDTO> createUser(CompositeUserDTO userDTO) {
         try {
+            String response = keycloakService.createUser(userDTO);
             // Check optional value
             log.info("User {} created successfully.", userDTO.username());
 
@@ -61,6 +52,8 @@ public class UserKeycloakController {
                     .body("Unexpected error occurred.");
         }
 
+        return Optional.empty();
     }
+
 
 }
