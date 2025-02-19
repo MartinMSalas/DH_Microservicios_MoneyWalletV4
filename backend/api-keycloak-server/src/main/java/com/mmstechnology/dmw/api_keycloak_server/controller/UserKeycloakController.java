@@ -38,8 +38,8 @@ public class UserKeycloakController {
     public ResponseEntity<?> createUser(@RequestBody CompositeUserDTO userDTO) {
         log.info("Creating user: {}", userDTO.username());
 
-        Optional<CompositeUserDTO> response = userKeycloakService.createUser(userDTO);
         try {
+            Optional<CompositeUserDTO> response = userKeycloakService.createUser(userDTO);
             // Check optional value
             log.info("User {} created successfully.", userDTO.username());
 

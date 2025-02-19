@@ -4,6 +4,7 @@ package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
+import com.mmstechnology.dmw.api_keycloak_server.model.KeycloakUser;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProviderV2;
@@ -33,7 +34,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     private static final String DEFAULT_ROLE = "user";
 
     @Override
-    public List<CompositeUserDTO> findAllUsers() {
+    public List<KeycloakUser> findAllUsers() {
         log.info("Fetching all users from Keycloak...");
         RealmResource realm = KeycloakProviderV2.getRealmResource();
         log.info("Using Access Token: {}", KeycloakProviderV2.getKeycloakInstance().tokenManager().getAccessToken().getToken());
@@ -48,7 +49,7 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
     }
 
     @Override
-    public List<CompositeUserDTO> searchUserByUsername(String username) {
+    public List<KeycloakUser> searchUserByUsername(String username) {
         log.info("Searching users with username: {}", username);
         RealmResource realm = KeycloakProviderV2.getRealmResource();
         List<UserRepresentation> users = realm.users().searchByUsername(username, true);
