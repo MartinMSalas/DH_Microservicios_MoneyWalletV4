@@ -1,12 +1,11 @@
 package com.mmstechnology.dmw.wallet_service.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
-@RestController("/wallet")
+@RestController
+@RequestMapping("/wallet")
 public class WalletController {
 
     @GetMapping("/")
@@ -15,9 +14,9 @@ public class WalletController {
     }
 
     @PostMapping("/{id}")
-    public String createWallet(String id) {
+    public String createWallet(@PathVariable String id) {
         log.info("Creating wallet for user with id: {}", id);
-        return "123";
+        return id;
 
     }
 }
