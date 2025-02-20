@@ -50,7 +50,7 @@ public class UserMapper {
      * @param userDTO The UserDTO object.
      * @return UserRepresentation object.
      */
-    public static UserRepresentation toUserRepresentation(KeycloakUser userDTO) {
+    public static UserRepresentation toUserRepresentation(CompositeUserDTO userDTO) {
         UserRepresentation userRepresentation = new UserRepresentation();
         userRepresentation.setUsername(userDTO.username());
         userRepresentation.setEmail(userDTO.email());

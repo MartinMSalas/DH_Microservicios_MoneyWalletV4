@@ -2,10 +2,13 @@ package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
+import com.mmstechnology.dmw.api_keycloak_server.model.DatabaseUser;
+import com.mmstechnology.dmw.api_keycloak_server.model.KeycloakUser;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.repository.UserKeycloakRepository;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.service.IUserKeycloakService;
+import com.mmstechnology.dmw.api_keycloak_server.service.IWalletService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -20,10 +24,12 @@ import java.util.Optional;
 public class UserKeycloakServiceImpl implements IUserKeycloakService {
 
     private final IKeycloakService keycloakService;
+    private final IWalletService walletService;
     private final UserKeycloakRepository userKeycloakRepository;
 
-    public UserKeycloakServiceImpl(IKeycloakService keycloakService, UserKeycloakRepository userKeycloakRepository) {
+    public UserKeycloakServiceImpl(IKeycloakService keycloakService, IWalletService walletService, UserKeycloakRepository userKeycloakRepository) {
         this.keycloakService = keycloakService;
+        this.walletService = walletService;
         this.userKeycloakRepository = userKeycloakRepository;
     }
 
@@ -32,7 +38,23 @@ public class UserKeycloakServiceImpl implements IUserKeycloakService {
 
         String response = keycloakService.createUser(userDTO);
         // Check optional value
-        log.info("User {} created successfully.", userDTO.username());
+        if (response == null) {
+            log.error("User creation failed in keycloak");
+            throw new UserCreationException("User creation failed in keycloak");
+        }
+        List<KeycloakUser> kUsers = keycloakService.searchUserByUsername(userDTO.username());
+
+        if (kUsers.isEmpty()) {
+            log.error("User creation failed in keycloak");
+            throw new UserCreationException("User creation failed in keycloak");
+        }
+        String userId = kUsers.get(0).userId();
+        String walletId = walletService.createWallet(userId);
+        DatabaseUser dbUser = new DatabaseUser();
+
+        dbUser.setUserId(userId);
+
+        log.info("User {} created successfully in keycloak.", userDTO.username());
 
 
         return Optional.empty();
