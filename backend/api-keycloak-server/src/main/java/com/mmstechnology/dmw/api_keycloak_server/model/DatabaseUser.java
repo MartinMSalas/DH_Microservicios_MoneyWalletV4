@@ -2,6 +2,7 @@ package com.mmstechnology.dmw.api_keycloak_server.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @Table(name = "database_user")
 @Data // Lombok:  Generates getters, setters, toString, equals, and hashCode methods
 @EqualsAndHashCode(onlyExplicitlyIncluded = true) // Lombok: Use only explicitly included fields for equals and hashCode
+@Builder
 public class DatabaseUser {
 
     /**
@@ -57,6 +59,12 @@ public class DatabaseUser {
      */
     @Column(name = "failed_attempts")
     private Integer failedAttempts = 0;
+
+    /**
+     * The List of Id of Wallet of an User
+     */
+    @Column(name = "wallet" , length = 36)
+    private String walletId;
 
     /**
      * Timestamp when the record was created.

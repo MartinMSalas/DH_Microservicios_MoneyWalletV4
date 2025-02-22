@@ -16,7 +16,7 @@ public class WalletController {
     @PostMapping("/{id}")
     public String createWallet(@PathVariable String id) {
         log.info("Creating wallet for user with id: {}", id);
-        return id;
+        return "1234567890-1234567890-1234567890-123";
 
     }
 }

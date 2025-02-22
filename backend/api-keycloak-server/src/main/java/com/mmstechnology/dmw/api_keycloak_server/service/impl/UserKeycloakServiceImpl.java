@@ -48,16 +48,36 @@ public class UserKeycloakServiceImpl implements IUserKeycloakService {
             log.error("User creation failed in keycloak");
             throw new UserCreationException("User creation failed in keycloak");
         }
+        log.info("User {} created successfully in keycloak.", userDTO.username());
         String userId = kUsers.get(0).userId();
         String walletId = walletService.createWallet(userId);
-        DatabaseUser dbUser = new DatabaseUser();
 
-        dbUser.setUserId(userId);
+        // Use builder to construct DatabaseUser
+        DatabaseUser dbUser = DatabaseUser.builder()
+                .userId(userId)
+                .walletId(walletId)
+                .build();
+        if (userDTO.phoneNumber() != null){
+            dbUser.setPhoneNumber(userDTO.phoneNumber());
+        }else{
+            dbUser.setPhoneNumber("");
+        }
 
-        log.info("User {} created successfully in keycloak.", userDTO.username());
+        userKeycloakRepository.save(dbUser);
+
+        log.info("User {} created successfully in database.", userDTO.username());
+
+        CompositeUserDTO compositeUserDTO = CompositeUserDTO.builder()
+                .userId(userId)
+                .phoneNumber(dbUser.getPhoneNumber())
+                .walletId(walletId)
+                .username(userDTO.username())
+                .password(userDTO.password())
+                .roles(userDTO.roles())
+                .build();
 
 
-        return Optional.empty();
+        return Optional.of(compositeUserDTO);
     }
 
 
