@@ -7,7 +7,7 @@ import java.sql.Blob;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-@Data
+
 @EntityScan
 public record CompositeUser(String userId, String username, String email, String firstName, String lastName,
                                 String password, String phoneNumber, Blob image, LocalDateTime lastLogin,

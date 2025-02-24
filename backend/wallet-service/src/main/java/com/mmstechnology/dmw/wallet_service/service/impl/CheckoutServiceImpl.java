@@ -1,7 +1,9 @@
-package com.mmstechnology.dmw.wallet_service.service;
+package com.mmstechnology.dmw.wallet_service.service.impl;
 
 import com.mmstechnology.dmw.wallet_service.model.dto.CheckoutDto;
 import com.mmstechnology.dmw.wallet_service.model.dto.ProductDto;
+import com.mmstechnology.dmw.wallet_service.service.CheckoutService;
+import com.mmstechnology.dmw.wallet_service.service.ProductService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

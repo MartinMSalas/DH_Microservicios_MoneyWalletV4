@@ -1,7 +1,8 @@
-package com.mmstechnology.dmw.wallet_service.service;
+package com.mmstechnology.dmw.wallet_service.service.impl;
 
 import com.mmstechnology.dmw.wallet_service.model.dto.ProductDto;
 import com.mmstechnology.dmw.wallet_service.repository.FeignProductRepository;
+import com.mmstechnology.dmw.wallet_service.service.ProductService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
