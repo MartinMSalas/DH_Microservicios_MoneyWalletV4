@@ -38,7 +38,7 @@ public class DatabaseUser {
      * Note: Consider using an external storage solution for large images.
      */
     @Lob
-    @Column(name = "image")
+    @Column(name = "image", columnDefinition = "longblob")
     private Blob image;
 
     /**

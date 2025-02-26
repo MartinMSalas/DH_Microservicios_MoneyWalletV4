@@ -10,25 +10,23 @@ import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.List;
 
-public class AliasGenerator {
+public final class AliasGenerator {
 
-    private final SecureRandom secureRandom = new SecureRandom();
-    private final IAliasGeneratorService aliasGeneratorService;
-    private final List<String> words;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static IAliasGeneratorService aliasGeneratorService;
+    private static final List<String> WORDS = loadWordsFromFile();
 
-    public AliasGenerator(IAliasGeneratorService aliasGeneratorService) {
-        this.aliasGeneratorService = aliasGeneratorService;
-        this.words = loadWordsFromFile();
-    }
+    // Private constructor prevents instantiation.
+    private AliasGenerator() { }
 
     /**
      * Loads the word list from the JSON file located in resources/json/wordList.json.
      *
      * @return List of words to use for alias generation.
      */
-    private List<String> loadWordsFromFile() {
+    private static List<String> loadWordsFromFile() {
         ObjectMapper mapper = new ObjectMapper();
-        try (InputStream is = getClass().getResourceAsStream("/json/wordList.json")) {
+        try (InputStream is = AliasGenerator.class.getResourceAsStream("/json/wordList.json")) {
             if (is == null) {
                 throw new RuntimeException("wordList.json not found in /json folder on the classpath.");
             }
@@ -39,21 +37,34 @@ public class AliasGenerator {
     }
 
     /**
-     * Generates a unique alias for the given walletId. The alias is composed of three randomly
-     * chosen words separated by a dot.
+     * Sets the alias generator service dependency.
+     * This must be called (for example, in a Spring initializer) before any alias generation is performed.
+     *
+     * @param service an instance of IAliasGeneratorService.
+     */
+    public static void setAliasGeneratorService(IAliasGeneratorService service) {
+        aliasGeneratorService = service;
+    }
+
+    /**
+     * Generates a unique alias for the given walletId. The alias is composed of three randomly chosen words
+     * (all distinct) separated by a dot.
      *
      * @param walletId the associated wallet identifier.
      * @return the generated unique alias.
      * @throws RuntimeException if unable to generate a unique alias after the maximum number of attempts.
      */
-    public String generateAlias(String walletId) {
+    public static String generateAlias(String walletId) {
         final int MAX_ATTEMPTS = 100;
         int attempts = 0;
 
         while (attempts < MAX_ATTEMPTS) {
             String alias = randomAlias();
             if (!exists(alias)) {
-                Alias newAlias = Alias.builder().alias(alias).walletId(walletId).build();
+                Alias newAlias = Alias.builder()
+                        .alias(alias)
+                        .walletId(walletId)
+                        .build();
                 return aliasGeneratorService.saveAlias(newAlias);
             }
             attempts++;
@@ -62,30 +73,29 @@ public class AliasGenerator {
     }
 
     /**
-     * Picks three random words from the list and joins them with dots.
+     * Picks three distinct random words from the list and joins them with dots.
      *
      * @return A string in the format word1.word2.word3.
      */
-    private String randomAlias() {
-        int index1 = secureRandom.nextInt(words.size());
+    private static String randomAlias() {
+        int index1 = SECURE_RANDOM.nextInt(WORDS.size());
 
         int index2;
         do {
-            index2 = secureRandom.nextInt(words.size());
+            index2 = SECURE_RANDOM.nextInt(WORDS.size());
         } while (index2 == index1);
 
         int index3;
         do {
-            index3 = secureRandom.nextInt(words.size());
+            index3 = SECURE_RANDOM.nextInt(WORDS.size());
         } while (index3 == index1 || index3 == index2);
 
-        String word1 = words.get(index1);
-        String word2 = words.get(index2);
-        String word3 = words.get(index3);
+        String word1 = WORDS.get(index1);
+        String word2 = WORDS.get(index2);
+        String word3 = WORDS.get(index3);
 
         return word1 + "." + word2 + "." + word3;
     }
-
 
     /**
      * Checks if the provided alias already exists.
@@ -93,7 +103,7 @@ public class AliasGenerator {
      * @param alias the alias to check.
      * @return true if it exists, false otherwise.
      */
-    public boolean exists(String alias) {
+    public static boolean exists(String alias) {
         return aliasGeneratorService.exists(alias);
     }
 }

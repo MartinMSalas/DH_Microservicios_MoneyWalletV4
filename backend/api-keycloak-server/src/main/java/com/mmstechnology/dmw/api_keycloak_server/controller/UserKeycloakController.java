@@ -1,5 +1,6 @@
 package com.mmstechnology.dmw.api_keycloak_server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
@@ -59,6 +60,8 @@ public class UserKeycloakController {
             log.error("URI Syntax Exception while creating user.", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Unexpected error occurred.");
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
 
     }

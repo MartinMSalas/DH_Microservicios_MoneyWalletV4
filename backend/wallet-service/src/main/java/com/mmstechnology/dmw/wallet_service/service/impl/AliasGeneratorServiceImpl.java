@@ -3,7 +3,9 @@ package com.mmstechnology.dmw.wallet_service.service.impl;
 import com.mmstechnology.dmw.wallet_service.model.Alias;
 import com.mmstechnology.dmw.wallet_service.repository.AliasGeneratorRepository;
 import com.mmstechnology.dmw.wallet_service.service.IAliasGeneratorService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class AliasGeneratorServiceImpl implements IAliasGeneratorService {
 
     private final AliasGeneratorRepository aliasGeneratorRepository;

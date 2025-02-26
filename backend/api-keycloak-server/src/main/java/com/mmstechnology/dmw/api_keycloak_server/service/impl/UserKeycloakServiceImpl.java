@@ -1,5 +1,6 @@
 package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.model.DatabaseUser;
@@ -34,7 +35,8 @@ public class UserKeycloakServiceImpl implements IUserKeycloakService {
     }
 
     @Override
-    public Optional<CompositeUserDTO> createUser(CompositeUserDTO userDTO) {
+    public Optional<CompositeUserDTO> createUser(CompositeUserDTO userDTO)  {
+
 
         String response = keycloakService.createUser(userDTO);
         // Check optional value
@@ -72,8 +74,11 @@ public class UserKeycloakServiceImpl implements IUserKeycloakService {
                 .phoneNumber(dbUser.getPhoneNumber())
                 .walletId(walletId)
                 .username(userDTO.username())
+                .email(userDTO.email())
+                .firstName(userDTO.firstName())
+                .lastName(userDTO.lastName())
                 .password(userDTO.password())
-                .roles(userDTO.roles())
+                .roles(kUsers.get(0).roles())
                 .build();
 
 

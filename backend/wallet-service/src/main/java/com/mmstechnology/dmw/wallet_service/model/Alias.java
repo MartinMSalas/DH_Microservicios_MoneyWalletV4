@@ -3,15 +3,24 @@ package com.mmstechnology.dmw.wallet_service.model;
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+
+
 @Data
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@Table(name = "alias")
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class Alias {
 

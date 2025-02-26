@@ -2,62 +2,69 @@ package com.mmstechnology.dmw.wallet_service.util;
 
 import com.mmstechnology.dmw.wallet_service.model.Cvu;
 import com.mmstechnology.dmw.wallet_service.service.ICvuGeneratorService;
-import com.mmstechnology.dmw.wallet_service.service.impl.CvuGeneratorServiceImpl;
+import lombok.Setter;
 
 import java.security.SecureRandom;
-import java.util.HashSet;
-import java.util.Set;
 
-public class CvuGenerator {
 
-    private  final SecureRandom SECURE_RANDOM = new SecureRandom();
+public final class CvuGenerator {
 
-    private  final ICvuGeneratorService cvuGeneratorService;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    public CvuGenerator(ICvuGeneratorService cvuGeneratorService) {
-        this.cvuGeneratorService = cvuGeneratorService;
-    }
+    // Static field to hold the service instance
+    private static ICvuGeneratorService cvuGeneratorService;
 
+    // Private constructor to prevent instantiation
+    private CvuGenerator() { }
 
     /**
-     * Generates a unique 22-digit CVU number.
+     * Set the CVU generator service.
+     * This method must be called before using generateCvu().
+     *
+     * @param service the service instance
+     */
+    public static void setCvuGeneratorService(ICvuGeneratorService service) {
+        cvuGeneratorService = service;
+    }
+
+    /**
+     * Generates a unique 22-digit CVU number for the given wallet.
      * Uses SecureRandom for better randomization quality.
      *
-     * @return A unique 22-digit CVU number
+     * @param walletId the wallet identifier associated with the CVU
+     * @return A unique 22-digit CVU number after saving it via the service
      * @throws RuntimeException if unable to generate a unique CVU after maximum attempts
      */
-    public  String generateCvu(String walletId) {
+    public static String generateCvu(String walletId) {
         final int MAX_ATTEMPTS = 100;
         int attempts = 0;
+        final int CVU_LENGTH = 22;
 
         while (attempts < MAX_ATTEMPTS) {
-            int CVU_LENGTH = 22;
             StringBuilder cvuBuilder = new StringBuilder(CVU_LENGTH);
-
             for (int i = 0; i < CVU_LENGTH; i++) {
                 cvuBuilder.append(SECURE_RANDOM.nextInt(10));
             }
-
             String cvu = cvuBuilder.toString();
             if (!exists(cvu)) {
-                Cvu newCvu = Cvu.builder().cvu(cvu).walletId(walletId).build();
+                Cvu newCvu = Cvu.builder()
+                        .cvu(cvu)
+                        .walletId(walletId)
+                        .build();
                 return cvuGeneratorService.saveCvu(newCvu);
-
             }
             attempts++;
         }
-
         throw new RuntimeException("Unable to generate unique CVU after " + MAX_ATTEMPTS + " attempts");
     }
 
     /**
-     * Checks if a CVU number already exists.
+     * Checks if a given CVU already exists.
      *
-     * @param cvu The CVU number to check
+     * @param cvu the CVU number to check
      * @return true if the CVU exists, false otherwise
      */
-    public  boolean exists(String cvu) {
+    public static boolean exists(String cvu) {
         return cvuGeneratorService.exists(cvu);
-
     }
 }

@@ -3,7 +3,9 @@ package com.mmstechnology.dmw.wallet_service.service.impl;
 import com.mmstechnology.dmw.wallet_service.model.Cvu;
 import com.mmstechnology.dmw.wallet_service.repository.CvuGeneratorRepository;
 import com.mmstechnology.dmw.wallet_service.service.ICvuGeneratorService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CvuGeneratorServiceImpl implements ICvuGeneratorService {
 
     private final CvuGeneratorRepository cvuGeneratorRepository;

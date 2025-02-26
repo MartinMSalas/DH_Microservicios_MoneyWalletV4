@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CvuGeneratorRepository extends CrudRepository<Cvu, String> {
+public interface CvuGeneratorRepository extends CrudRepository<Cvu, Long> {
     boolean existsByCvu(String cvu);
 
 
