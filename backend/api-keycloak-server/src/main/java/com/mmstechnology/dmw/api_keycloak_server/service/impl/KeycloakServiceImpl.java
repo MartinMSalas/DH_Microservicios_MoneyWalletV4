@@ -1,7 +1,6 @@
 package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
-import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
@@ -13,7 +12,6 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -55,7 +53,7 @@ public class KeycloakServiceImpl implements IKeycloakServiceV0 {
      * @return String
      */
     @Override
-    public String createUser(@Nonnull UserDTO userDTO) {
+    public String createUser(@Nonnull CompositeUserDTO userDTO) {
         int status = 0;
         UsersResource userResource = KeycloakProvider.getUserResource();
         UserRepresentation userRepresentation = new UserRepresentation();
@@ -138,7 +136,7 @@ public class KeycloakServiceImpl implements IKeycloakServiceV0 {
      * @param userDTO
      */
     @Override
-    public void updateUser(String userId,@Nonnull UserDTO userDTO) {
+    public void updateUser(String userId,@Nonnull CompositeUserDTO userDTO) {
         CredentialRepresentation credentialRepresentation = new CredentialRepresentation();
         credentialRepresentation.setTemporary(false);
         credentialRepresentation.setType(OAuth2Constants.PASSWORD);

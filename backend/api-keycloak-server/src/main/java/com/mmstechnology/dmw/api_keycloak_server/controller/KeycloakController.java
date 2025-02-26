@@ -4,7 +4,8 @@ package com.mmstechnology.dmw.api_keycloak_server.controller;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserNotFoundException;
-import com.mmstechnology.dmw.api_keycloak_server.model.dto.UserDTO;
+import com.mmstechnology.dmw.api_keycloak_server.model.KeycloakUser;
+import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ public class KeycloakController {
     public ResponseEntity<?> findAllUsers() {
         log.info("Fetching all users from Keycloak...");
 
-        List<UserDTO> userDTOList = keycloakService.findAllUsers();
+        List<KeycloakUser> userDTOList = keycloakService.findAllUsers();
 
         if (userDTOList.isEmpty()) {
             log.warn("No users found in Keycloak.");
@@ -54,7 +55,7 @@ public class KeycloakController {
     public ResponseEntity<?> findUserByUsername(@PathVariable String username) {
         log.info("Searching for user with username: {}", username);
 
-        List<UserDTO> users = keycloakService.searchUserByUsername(username);
+        List<KeycloakUser> users = keycloakService.searchUserByUsername(username);
 
         if (users.isEmpty()) {
             log.warn("No user found with username: {}", username);
@@ -67,7 +68,7 @@ public class KeycloakController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> createUser(@RequestBody CompositeUserDTO userDTO) {
         log.info("Creating user: {}", userDTO.username());
 
         try {
@@ -91,7 +92,7 @@ public class KeycloakController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody CompositeUserDTO userDTO) {
         log.info("Updating user with ID: {}", userId);
 
         try {
