@@ -44,6 +44,7 @@ Se ha optado por una arquitectura basada en microservicios para facilitar el des
         Servicio (e.g. Eureka, Consul) para el registro automático de los microservicios.
     
     Keycloak Server
+        Servicio encargado de la gestion de seguridad
 
 Cada microservicio puede incluir su propia base de datos, permitiendo una mayor independencia y escalabilidad.
 3. Tecnologías Principales
