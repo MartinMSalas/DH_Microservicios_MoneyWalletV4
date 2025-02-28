@@ -21,4 +21,6 @@ public interface IWalletService {
     TransactionDto getActivityDetails(String accountId, Long transferenceID);
 
     void registerMoneyIncome(String accountId, TransactionDto transactionDto);
+
+    List<String> getLastRecipients(String accountId);
 }

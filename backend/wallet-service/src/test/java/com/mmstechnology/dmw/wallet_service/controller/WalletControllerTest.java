@@ -151,4 +151,22 @@ public class WalletControllerTest {
         mockMvc.perform(get("/wallet/updated-functionality/test"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    public void testGetLastRecipients() throws Exception {
+        Mockito.when(walletService.getLastRecipients(anyString())).thenReturn(List.of("Recipient 1", "Recipient 2", "Recipient 3"));
+
+        mockMvc.perform(get("/wallet/accounts/1/transferences"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("[\"Recipient 1\", \"Recipient 2\", \"Recipient 3\"]"));
+    }
+
+    @Test
+    public void testGetLastRecipientsForbidden() throws Exception {
+        Mockito.when(walletService.getLastRecipients(anyString())).thenThrow(new SecurityException("Forbidden"));
+
+        mockMvc.perform(get("/wallet/accounts/1/transferences"))
+                .andExpect(status().isForbidden());
+    }
 }

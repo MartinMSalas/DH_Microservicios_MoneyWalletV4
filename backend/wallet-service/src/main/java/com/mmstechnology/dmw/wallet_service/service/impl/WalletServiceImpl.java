@@ -119,4 +119,11 @@ public class WalletServiceImpl implements IWalletService {
         walletRepository.save(wallet);
         walletRepository.save(transaction);
     }
+
+    @Override
+    public List<String> getLastRecipients(String accountId) {
+        Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        List<Transaction> transactions = walletRepository.findTop5ByAccountIdOrderByDateDesc(accountId);
+        return transactions.stream().map(Transaction::getDescription).toList();
+    }
 }
