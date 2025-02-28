@@ -50,4 +50,16 @@ class WalletServiceApplicationTests {
         ResponseEntity<String> response = restTemplate.getForEntity("/updated-functionality/test", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
+    @Test
+    void testNewFunctionalitySprint3() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/new-functionality-sprint3/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void testUpdatedFunctionalitySprint3() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/updated-functionality-sprint3/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
 }
