@@ -151,4 +151,21 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register money income: " + e.getMessage());
         }
     }
+
+    @GetMapping("/accounts/{id}/transferences")
+    public ResponseEntity<List<String>> getLastRecipients(@PathVariable String id) {
+        log.info("Fetching last recipients for account with id: {}", id);
+        try {
+            List<String> recipients = walletService.getLastRecipients(id);
+            return ResponseEntity.ok(recipients);
+        } catch (AccountNotFoundException e) {
+            log.warn("Account with id {} not found.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(List.of("Account with id '" + id + "' not found."));
+        } catch (Exception e) {
+            log.error("Error fetching last recipients for account with id {}.", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(List.of("Failed to fetch last recipients: " + e.getMessage()));
+        }
+    }
 }
