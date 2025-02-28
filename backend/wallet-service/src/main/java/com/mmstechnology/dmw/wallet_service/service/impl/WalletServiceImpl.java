@@ -62,4 +62,19 @@ public class WalletServiceImpl implements IWalletService {
         List<Transaction> transactions = walletRepository.findTop5ByAccountIdOrderByDateDesc(accountId);
         return transactions.stream().map(TransactionMapper::toDto).toList();
     }
+
+    @Override
+    public void updateAccount(String accountId, WalletDto walletDto) {
+        Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        if (walletDto.getAlias() != null) {
+            wallet.setAlias(walletDto.getAlias());
+        }
+        if (walletDto.getCvu() != null) {
+            wallet.setCvu(walletDto.getCvu());
+        }
+        if (walletDto.getBalance() != null) {
+            wallet.setBalance(walletDto.getBalance());
+        }
+        walletRepository.save(wallet);
+    }
 }

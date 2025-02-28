@@ -13,4 +13,6 @@ public interface IWalletService {
     BigDecimal getBalance(String accountId);
 
     List<TransactionDto> getLast5Transactions(String accountId);
+
+    void updateAccount(String accountId, WalletDto walletDto);
 }
