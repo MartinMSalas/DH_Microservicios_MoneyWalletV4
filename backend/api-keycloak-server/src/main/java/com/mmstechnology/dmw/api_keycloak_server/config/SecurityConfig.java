@@ -24,7 +24,7 @@ public class SecurityConfig {
         return httpSecurity
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests ( http -> http
-                    .requestMatchers("/actuator/**", "/eureka/**","/user/register/**").permitAll()
+                    .requestMatchers("/actuator/**", "/eureka/**","/user/register/**", "/login").permitAll()
                     .anyRequest().authenticated() )
             .oauth2ResourceServer(oauth -> {oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter));})
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
