@@ -6,18 +6,40 @@ import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.OAuth2Constants;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 
-//@Service
+@Service
 public class KeycloakServiceImpl implements IKeycloakServiceV0 {
+
+    @Value("${keycloak.auth-server-url}")
+    private String keycloakServerUrl;
+
+    @Value("${keycloak.realm}")
+    private String keycloakRealm;
+
+    @Value("${keycloak.resource}")
+    private String keycloakClientId;
+
+    @Value("${keycloak.credentials.secret}")
+    private String keycloakClientSecret;
+
+    @Value("${keycloak-admin.username}")
+    private String keycloakAdminUsername;
+
+    @Value("${keycloak-admin.password}")
+    private String keycloakAdminPassword;
 
     /**
      * Method to find all user of Keycloak
@@ -158,5 +180,28 @@ public class KeycloakServiceImpl implements IKeycloakServiceV0 {
 
         UserResource userResource = KeycloakProvider.getUserResource().get(userId);
         userResource.update(userRepresentation);
+    }
+
+    /**
+     * Method to logout user
+     *
+     * @param token
+     */
+    @Override
+    public void logoutUser(String token) {
+        try {
+            Keycloak keycloak = KeycloakBuilder.builder()
+                    .serverUrl(keycloakServerUrl)
+                    .realm(keycloakRealm)
+                    .clientId(keycloakClientId)
+                    .clientSecret(keycloakClientSecret)
+                    .username(keycloakAdminUsername)
+                    .password(keycloakAdminPassword)
+                    .build();
+
+            keycloak.tokenManager().invalidate(token);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to logout user: " + e.getMessage(), e);
+        }
     }
 }

@@ -166,4 +166,18 @@ public class KeycloakController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        log.info("Attempting to logout user");
+
+        try {
+            String token = authorizationHeader.replace("Bearer ", "");
+            keycloakService.logoutUser(token);
+            return ResponseEntity.ok("User logged out successfully.");
+        } catch (Exception e) {
+            log.error("Logout failed.", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to logout user.");
+        }
+    }
 }

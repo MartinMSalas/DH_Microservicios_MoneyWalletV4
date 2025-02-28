@@ -93,4 +93,41 @@ class ApiKeycloakApplicationTests {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
+
+    @Test
+    void testLogoutWithValidToken() {
+        // Arrange
+        String email = "validuser@example.com";
+        String password = "validpassword";
+        MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("email", email);
+        requestBody.add("password", password);
+
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity("/keycloak/user/login", requestBody, String.class);
+        String token = loginResponse.getBody().split(":")[1].replace("\"", "").replace("}", "").trim();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + token);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Act
+        ResponseEntity<String> response = restTemplate.exchange("/keycloak/user/logout", HttpMethod.POST, entity, String.class);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void testLogoutWithInvalidToken() {
+        // Arrange
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer invalidtoken");
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        // Act
+        ResponseEntity<String> response = restTemplate.exchange("/keycloak/user/logout", HttpMethod.POST, entity, String.class);
+
+        // Assert
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
