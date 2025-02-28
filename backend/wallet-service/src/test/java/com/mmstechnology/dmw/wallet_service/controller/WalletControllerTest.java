@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,11 +40,11 @@ public class WalletControllerTest {
     public void setUp() {
         Mockito.when(walletService.getBalance(anyString())).thenReturn(new BigDecimal("1000.00"));
         Mockito.when(walletService.getLast5Transactions(anyString())).thenReturn(List.of(
-                new TransactionDto(1L, new BigDecimal("100.00"), "2023-01-01", "Transaction 1"),
-                new TransactionDto(2L, new BigDecimal("200.00"), "2023-01-02", "Transaction 2"),
-                new TransactionDto(3L, new BigDecimal("300.00"), "2023-01-03", "Transaction 3"),
-                new TransactionDto(4L, new BigDecimal("400.00"), "2023-01-04", "Transaction 4"),
-                new TransactionDto(5L, new BigDecimal("500.00"), "2023-01-05", "Transaction 5")
+                new TransactionDto(1L, new BigDecimal("100.00"), LocalDateTime.parse("2023-01-01T00:00:00"), "Transaction 1"),
+                new TransactionDto(2L, new BigDecimal("200.00"), LocalDateTime.parse("2023-01-02T00:00:00"), "Transaction 2"),
+                new TransactionDto(3L, new BigDecimal("300.00"), LocalDateTime.parse("2023-01-03T00:00:00"), "Transaction 3"),
+                new TransactionDto(4L, new BigDecimal("400.00"), LocalDateTime.parse("2023-01-04T00:00:00"), "Transaction 4"),
+                new TransactionDto(5L, new BigDecimal("500.00"), LocalDateTime.parse("2023-01-05T00:00:00"), "Transaction 5")
         ));
         Mockito.when(walletService.getAccountInfo(anyString())).thenReturn(new WalletDto("1", "1234567890-1234567890-1234567890-123", "alias", new BigDecimal("1000.00"), "ARS", "userId", null));
 
@@ -69,11 +70,11 @@ public class WalletControllerTest {
         mockMvc.perform(get("/wallet/accounts/1/transactions"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("[{\"id\":1,\"amount\":100.00,\"date\":\"2023-01-01\",\"description\":\"Transaction 1\"}," +
-                        "{\"id\":2,\"amount\":200.00,\"date\":\"2023-01-02\",\"description\":\"Transaction 2\"}," +
-                        "{\"id\":3,\"amount\":300.00,\"date\":\"2023-01-03\",\"description\":\"Transaction 3\"}," +
-                        "{\"id\":4,\"amount\":400.00,\"date\":\"2023-01-04\",\"description\":\"Transaction 4\"}," +
-                        "{\"id\":5,\"amount\":500.00,\"date\":\"2023-01-05\",\"description\":\"Transaction 5\"}]"));
+                .andExpect(content().json("[{\"id\":1,\"amount\":100.00,\"date\":\"2023-01-01T00:00:00\",\"description\":\"Transaction 1\"}," +
+                        "{\"id\":2,\"amount\":200.00,\"date\":\"2023-01-02T00:00:00\",\"description\":\"Transaction 2\"}," +
+                        "{\"id\":3,\"amount\":300.00,\"date\":\"2023-01-03T00:00:00\",\"description\":\"Transaction 3\"}," +
+                        "{\"id\":4,\"amount\":400.00,\"date\":\"2023-01-04T00:00:00\",\"description\":\"Transaction 4\"}," +
+                        "{\"id\":5,\"amount\":500.00,\"date\":\"2023-01-05T00:00:00\",\"description\":\"Transaction 5\"}]"));
     }
 
     @Test
@@ -124,6 +125,19 @@ public class WalletControllerTest {
         mockMvc.perform(delete("/wallet/accounts/1/cards/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Card deleted successfully."));
+    }
+
+    @Test
+    public void testRegisterMoneyIncome() throws Exception {
+        TransactionDto transactionDto = new TransactionDto(1L, new BigDecimal("100.00"), LocalDateTime.parse("2023-01-01T00:00:00"), "Test transaction");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String transactionDtoJson = objectMapper.writeValueAsString(transactionDto);
+
+        mockMvc.perform(post("/wallet/accounts/1/transferences")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(transactionDtoJson))
+                .andExpect(status().isCreated())
+                .andExpect(content().string("Money income registered successfully."));
     }
 
     @Test
