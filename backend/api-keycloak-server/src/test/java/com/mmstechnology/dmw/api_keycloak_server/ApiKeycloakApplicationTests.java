@@ -130,4 +130,16 @@ class ApiKeycloakApplicationTests {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @Test
+    void testNewFunctionalitySprint2() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/new-functionality/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void testUpdatedFunctionalitySprint1() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/updated-functionality/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
 }
