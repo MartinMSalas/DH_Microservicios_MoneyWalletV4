@@ -37,6 +37,18 @@ class ApiGatewayServerApplicationTests {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
+    @Test
+    void testNewFunctionalitySprint2() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/new-functionality/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    void testUpdatedFunctionalitySprint1() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/updated-functionality/test", String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
     @Configuration
     static class TestConfig {
 

@@ -63,4 +63,23 @@ public class CardServiceTest {
 
         assertDoesNotThrow(() -> cardService.deleteCard("1", "1"));
     }
+
+    @Test
+    public void testNewFunctionalitySprint2() {
+        // Add test case for new functionality in Sprint 2
+        Card card = new Card(4L, "2", "2222333344445555", "09/24", "Bob Johnson", "Debit");
+        Mockito.when(cardRepository.save(card)).thenReturn(card);
+        assertDoesNotThrow(() -> cardService.addCard("2", card));
+    }
+
+    @Test
+    public void testUpdatedFunctionalitySprint1() {
+        // Update test case for functionality from Sprint 1
+        Mockito.when(cardRepository.findByIdAndAccountId(anyString(), anyString())).thenReturn(Optional.of(
+                new Card(1L, "1", "1234567890123456", "12/25", "John Doe", "Credit")
+        ));
+        Card card = cardService.getCardDetails("1", "1");
+        assertNotNull(card);
+        assertEquals("1234567890123456", card.getCardNumber());
+    }
 }
