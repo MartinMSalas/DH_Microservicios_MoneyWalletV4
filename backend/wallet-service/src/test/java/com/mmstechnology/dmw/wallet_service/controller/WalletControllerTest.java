@@ -1,8 +1,10 @@
 package com.mmstechnology.dmw.wallet_service.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mmstechnology.dmw.wallet_service.model.Card;
 import com.mmstechnology.dmw.wallet_service.model.dto.TransactionDto;
 import com.mmstechnology.dmw.wallet_service.model.dto.WalletDto;
+import com.mmstechnology.dmw.wallet_service.service.ICardService;
 import com.mmstechnology.dmw.wallet_service.service.IWalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,6 +32,9 @@ public class WalletControllerTest {
     @MockBean
     private IWalletService walletService;
 
+    @MockBean
+    private ICardService cardService;
+
     @BeforeEach
     public void setUp() {
         Mockito.when(walletService.getBalance(anyString())).thenReturn(new BigDecimal("1000.00"));
@@ -42,6 +46,14 @@ public class WalletControllerTest {
                 new TransactionDto("5", new BigDecimal("500.00"), "2023-01-05", "Transaction 5")
         ));
         Mockito.when(walletService.getAccountInfo(anyString())).thenReturn(new WalletDto("1", "1234567890-1234567890-1234567890-123", "alias", new BigDecimal("1000.00"), "ARS"));
+
+        Mockito.when(cardService.listCards(anyString())).thenReturn(List.of(
+                new Card(1L, "1", "1234567890123456", "12/25", "John Doe", "Credit"),
+                new Card(2L, "1", "6543210987654321", "11/24", "Jane Doe", "Debit")
+        ));
+        Mockito.when(cardService.getCardDetails(anyString(), anyString())).thenReturn(
+                new Card(1L, "1", "1234567890123456", "12/25", "John Doe", "Credit")
+        );
     }
 
     @Test
@@ -75,5 +87,42 @@ public class WalletControllerTest {
                         .content(walletDtoJson))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Account updated successfully."));
+    }
+
+    @Test
+    public void testListCards() throws Exception {
+        mockMvc.perform(get("/wallet/accounts/1/cards"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("[{\"cardId\":1,\"accountId\":\"1\",\"cardNumber\":\"1234567890123456\",\"expiryDate\":\"12/25\",\"cardHolderName\":\"John Doe\",\"cardType\":\"Credit\"}," +
+                        "{\"cardId\":2,\"accountId\":\"1\",\"cardNumber\":\"6543210987654321\",\"expiryDate\":\"11/24\",\"cardHolderName\":\"Jane Doe\",\"cardType\":\"Debit\"}]"));
+    }
+
+    @Test
+    public void testGetCardDetails() throws Exception {
+        mockMvc.perform(get("/wallet/accounts/1/cards/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().json("{\"cardId\":1,\"accountId\":\"1\",\"cardNumber\":\"1234567890123456\",\"expiryDate\":\"12/25\",\"cardHolderName\":\"John Doe\",\"cardType\":\"Credit\"}"));
+    }
+
+    @Test
+    public void testAddCard() throws Exception {
+        Card card = new Card(3L, "1", "1111222233334444", "10/23", "Alice Smith", "Credit");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String cardJson = objectMapper.writeValueAsString(card);
+
+        mockMvc.perform(post("/wallet/accounts/1/cards")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cardJson))
+                .andExpect(status().isCreated())
+                .andExpect(content().string("Card added successfully."));
+    }
+
+    @Test
+    public void testDeleteCard() throws Exception {
+        mockMvc.perform(delete("/wallet/accounts/1/cards/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Card deleted successfully."));
     }
 }
