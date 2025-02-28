@@ -1,7 +1,8 @@
 package com.mmstechnology.dmw.api_keycloak_server.service.impl;
 
+import com.mmstechnology.dmw.api_keycloak_server.exception.UserNotFoundException;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
-import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakServiceV0;
+import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
 import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
 import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.core.Response;
@@ -21,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class KeycloakServiceImpl implements IKeycloakServiceV0 {
+public class KeycloakServiceImpl implements IKeycloakService {
 
     @Value("${keycloak.auth-server-url}")
     private String keycloakServerUrl;
@@ -203,5 +204,51 @@ public class KeycloakServiceImpl implements IKeycloakServiceV0 {
         } catch (Exception e) {
             throw new RuntimeException("Failed to logout user: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Method to get user by ID
+     *
+     * @param userId
+     * @return CompositeUserDTO
+     */
+    @Override
+    public CompositeUserDTO getUserById(String userId) {
+        UserResource userResource = KeycloakProvider.getUserResource().get(userId);
+        UserRepresentation userRepresentation = userResource.toRepresentation();
+
+        if (userRepresentation == null) {
+            throw new UserNotFoundException("User with id '" + userId + "' not found.");
+        }
+
+        return CompositeUserDTO.builder()
+                .userId(userRepresentation.getId())
+                .username(userRepresentation.getUsername())
+                .email(userRepresentation.getEmail())
+                .firstName(userRepresentation.getFirstName())
+                .lastName(userRepresentation.getLastName())
+                .build();
+    }
+
+    /**
+     * Method to update user information
+     *
+     * @param userId
+     * @param userDTO
+     */
+    @Override
+    public void updateUser(String userId, CompositeUserDTO userDTO) {
+        UserResource userResource = KeycloakProvider.getUserResource().get(userId);
+        UserRepresentation userRepresentation = userResource.toRepresentation();
+
+        if (userRepresentation == null) {
+            throw new UserNotFoundException("User with id '" + userId + "' not found.");
+        }
+
+        userRepresentation.setEmail(userDTO.email());
+        userRepresentation.setFirstName(userDTO.firstName());
+        userRepresentation.setLastName(userDTO.lastName());
+
+        userResource.update(userRepresentation);
     }
 }

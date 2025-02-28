@@ -44,10 +44,27 @@ public class WalletController {
     }
 
     @GetMapping("/accounts/{id}")
-    public ResponseEntity<BigDecimal> getBalance(@PathVariable String id) {
-        log.info("Fetching balance for account with id: {}", id);
-        BigDecimal balance = walletService.getBalance(id);
-        return ResponseEntity.ok(balance);
+    public ResponseEntity<WalletDto> getAccountInfo(@PathVariable String id) {
+        log.info("Fetching account information for account with id: {}", id);
+        WalletDto walletDto = walletService.getAccountInfo(id);
+        return ResponseEntity.ok(walletDto);
+    }
+
+    @PatchMapping("/accounts/{id}")
+    public ResponseEntity<?> updateAccount(@PathVariable String id, @RequestBody WalletDto walletDto) {
+        log.info("Updating account with id: {}", id);
+        try {
+            walletService.updateAccount(id, walletDto);
+            return ResponseEntity.ok("Account updated successfully.");
+        } catch (AccountNotFoundException e) {
+            log.warn("Account with id {} not found.", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Account with id '" + id + "' not found.");
+        } catch (Exception e) {
+            log.error("Error updating account with id {}.", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update account: " + e.getMessage());
+        }
     }
 
     @GetMapping("/accounts/{id}/transactions")

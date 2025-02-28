@@ -1,6 +1,8 @@
 package com.mmstechnology.dmw.wallet_service.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mmstechnology.dmw.wallet_service.model.dto.TransactionDto;
+import com.mmstechnology.dmw.wallet_service.model.dto.WalletDto;
 import com.mmstechnology.dmw.wallet_service.service.IWalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -38,6 +41,7 @@ public class WalletControllerTest {
                 new TransactionDto("4", new BigDecimal("400.00"), "2023-01-04", "Transaction 4"),
                 new TransactionDto("5", new BigDecimal("500.00"), "2023-01-05", "Transaction 5")
         ));
+        Mockito.when(walletService.getAccountInfo(anyString())).thenReturn(new WalletDto("1", "1234567890-1234567890-1234567890-123", "alias", new BigDecimal("1000.00"), "ARS"));
     }
 
     @Test
@@ -45,7 +49,7 @@ public class WalletControllerTest {
         mockMvc.perform(get("/wallet/accounts/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().json("1000.00"));
+                .andExpect(content().json("{\"walletId\":\"1\",\"cvu\":\"1234567890-1234567890-1234567890-123\",\"alias\":\"alias\",\"balance\":1000.00,\"currency\":\"ARS\"}"));
     }
 
     @Test
@@ -58,5 +62,18 @@ public class WalletControllerTest {
                         "{\"id\":\"3\",\"amount\":300.00,\"date\":\"2023-01-03\",\"description\":\"Transaction 3\"}," +
                         "{\"id\":\"4\",\"amount\":400.00,\"date\":\"2023-01-04\",\"description\":\"Transaction 4\"}," +
                         "{\"id\":\"5\",\"amount\":500.00,\"date\":\"2023-01-05\",\"description\":\"Transaction 5\"}]"));
+    }
+
+    @Test
+    public void testUpdateAccount() throws Exception {
+        WalletDto walletDto = new WalletDto("1", "1234567890-1234567890-1234567890-123", "newAlias", new BigDecimal("2000.00"), "ARS");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String walletDtoJson = objectMapper.writeValueAsString(walletDto);
+
+        mockMvc.perform(patch("/wallet/accounts/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(walletDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Account updated successfully."));
     }
 }
