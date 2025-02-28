@@ -1,6 +1,7 @@
 package com.mmstechnology.dmw.wallet_service.service.impl;
 
 import com.mmstechnology.dmw.wallet_service.model.Wallet;
+import com.mmstechnology.dmw.wallet_service.model.Transaction;
 import com.mmstechnology.dmw.wallet_service.model.dto.WalletDto;
 import com.mmstechnology.dmw.wallet_service.model.dto.TransactionDto;
 import com.mmstechnology.dmw.wallet_service.repository.WalletRepository;
@@ -76,5 +77,19 @@ public class WalletServiceImpl implements IWalletService {
             wallet.setBalance(walletDto.getBalance());
         }
         walletRepository.save(wallet);
+    }
+
+    @Override
+    public List<TransactionDto> getAllActivities(String accountId) {
+        Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        List<Transaction> transactions = walletRepository.findAllByAccountIdOrderByDateDesc(accountId);
+        return transactions.stream().map(TransactionMapper::toDto).toList();
+    }
+
+    @Override
+    public TransactionDto getActivityDetails(String accountId, Long transferenceID) {
+        Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        Transaction transaction = walletRepository.findByIdAndAccountId(transferenceID, accountId).orElseThrow(() -> new RuntimeException("Transaction not found"));
+        return TransactionMapper.toDto(transaction);
     }
 }

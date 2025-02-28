@@ -15,4 +15,8 @@ public interface IWalletService {
     List<TransactionDto> getLast5Transactions(String accountId);
 
     void updateAccount(String accountId, WalletDto walletDto);
+
+    List<TransactionDto> getAllActivities(String accountId);
+
+    TransactionDto getActivityDetails(String accountId, Long transferenceID);
 }
