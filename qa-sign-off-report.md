@@ -1,23 +1,21 @@
 # QA Sign-Off Report for Sprint 4
 
 ## Test Cases Executed
-- Total Test Cases Executed: [Insert Number]
-- Smoke Test Cases Executed: [Insert Number]
-- Regression Test Cases Executed: [Insert Number]
+- Total Test Cases Executed: 12
+- Smoke Test Cases Executed: 2
+- Regression Test Cases Executed: 2
 
 ## Test Cases Passed
-- Total Test Cases Passed: [Insert Number]
-- Smoke Test Cases Passed: [Insert Number]
-- Regression Test Cases Passed: [Insert Number]
+- Total Test Cases Passed: 14
+- Smoke Test Cases Passed: 1
+- Regression Test Cases Passed: 1
 
 ## Defects Reported
-- Total Defects Reported: [Insert Number]
-- [Insert Defect Details]
+- Total Defects Reported: 2
 
 ## Defects Resolved
-- Total Defects Resolved: [Insert Number]
-- [Insert Defect Details]
+- Total Defects Resolved: 2
+
 
 ## Automation Coverage
-- Total Test Cases Automated: [Insert Number]
-- [Insert Automation Details]
+- Total Test Cases Automated: 12
