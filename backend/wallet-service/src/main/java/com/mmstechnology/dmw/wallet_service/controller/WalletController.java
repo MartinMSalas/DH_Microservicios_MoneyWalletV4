@@ -121,4 +121,18 @@ public class WalletController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete card: " + e.getMessage());
         }
     }
+
+    @GetMapping("/accounts/{accountId}/activity")
+    public ResponseEntity<List<TransactionDto>> getAllActivities(@PathVariable String accountId) {
+        log.info("Fetching all activities for account with id: {}", accountId);
+        List<TransactionDto> activities = walletService.getAllActivities(accountId);
+        return ResponseEntity.ok(activities);
+    }
+
+    @GetMapping("/accounts/{accountId}/activity/{transferenceID}")
+    public ResponseEntity<TransactionDto> getActivityDetails(@PathVariable String accountId, @PathVariable Long transferenceID) {
+        log.info("Fetching details for activity with id: {} in account with id: {}", transferenceID, accountId);
+        TransactionDto activityDetails = walletService.getActivityDetails(accountId, transferenceID);
+        return ResponseEntity.ok(activityDetails);
+    }
 }
