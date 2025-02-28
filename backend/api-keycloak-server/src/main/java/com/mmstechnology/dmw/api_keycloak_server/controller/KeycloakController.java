@@ -1,13 +1,19 @@
 package com.mmstechnology.dmw.api_keycloak_server.controller;
 
-
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserAlreadyExistsException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserCreationException;
 import com.mmstechnology.dmw.api_keycloak_server.exception.UserNotFoundException;
 import com.mmstechnology.dmw.api_keycloak_server.model.KeycloakUser;
 import com.mmstechnology.dmw.api_keycloak_server.model.dto.CompositeUserDTO;
 import com.mmstechnology.dmw.api_keycloak_server.service.IKeycloakService;
+import com.mmstechnology.dmw.api_keycloak_server.util.KeycloakProvider;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.representations.AccessTokenResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -27,7 +34,11 @@ public class KeycloakController {
 
     private final IKeycloakService keycloakService;
 
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     public KeycloakController(IKeycloakService keycloakService) {
         this.keycloakService = keycloakService;
@@ -48,8 +59,6 @@ public class KeycloakController {
         log.info("Returning {} user(s).", userDTOList.size());
         return ResponseEntity.ok(userDTOList);
     }
-
-
 
     @GetMapping("/{username}")
     public ResponseEntity<?> findUserByUsername(@PathVariable String username) {
@@ -129,5 +138,32 @@ public class KeycloakController {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestParam String email, @RequestParam String password) {
+        log.info("Attempting to login user with email: {}", email);
 
+        try {
+            Keycloak keycloak = KeycloakBuilder.builder()
+                    .serverUrl(KeycloakProvider.SERVER_URL)
+                    .realm(KeycloakProvider.REALM_NAME)
+                    .clientId(KeycloakProvider.ADMIN_CLI)
+                    .username(email)
+                    .password(password)
+                    .build();
+
+            AccessTokenResponse tokenResponse = keycloak.tokenManager().getAccessToken();
+
+            String jwtToken = Jwts.builder()
+                    .setSubject(email)
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                    .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                    .compact();
+
+            return ResponseEntity.ok().body("{\"token\": \"" + jwtToken + "\"}");
+        } catch (Exception e) {
+            log.error("Login failed for user with email: {}", email, e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
+        }
+    }
 }
