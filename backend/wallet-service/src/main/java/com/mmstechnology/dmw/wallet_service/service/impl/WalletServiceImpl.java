@@ -5,6 +5,7 @@ import com.mmstechnology.dmw.wallet_service.model.Transaction;
 import com.mmstechnology.dmw.wallet_service.model.dto.WalletDto;
 import com.mmstechnology.dmw.wallet_service.model.dto.TransactionDto;
 import com.mmstechnology.dmw.wallet_service.repository.WalletRepository;
+import com.mmstechnology.dmw.wallet_service.repository.CardRepository;
 import com.mmstechnology.dmw.wallet_service.service.IWalletService;
 import com.mmstechnology.dmw.wallet_service.util.AliasGenerator;
 import com.mmstechnology.dmw.wallet_service.util.CvuGenerator;
@@ -22,11 +23,13 @@ import java.util.UUID;
 public class WalletServiceImpl implements IWalletService {
 
     private final WalletRepository walletRepository;
+    private final CardRepository cardRepository;
 
-    public WalletServiceImpl(CvuGeneratorServiceImpl cvuGeneratorService, AliasGeneratorServiceImpl aliasGeneratorService, WalletRepository walletRepository) {
+    public WalletServiceImpl(CvuGeneratorServiceImpl cvuGeneratorService, AliasGeneratorServiceImpl aliasGeneratorService, WalletRepository walletRepository, CardRepository cardRepository) {
         CvuGenerator.setCvuGeneratorService(cvuGeneratorService);
         AliasGenerator.setAliasGeneratorService(aliasGeneratorService);
         this.walletRepository = walletRepository;
+        this.cardRepository = cardRepository;
     }
 
     @Override
@@ -91,5 +94,29 @@ public class WalletServiceImpl implements IWalletService {
         Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
         Transaction transaction = walletRepository.findByIdAndAccountId(transferenceID, accountId).orElseThrow(() -> new RuntimeException("Transaction not found"));
         return TransactionMapper.toDto(transaction);
+    }
+
+    @Override
+    public void registerMoneyIncome(String accountId, TransactionDto transactionDto) {
+        Wallet wallet = walletRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+
+        if (transactionDto.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Amount must be greater than zero");
+        }
+
+        if (!cardRepository.existsByIdAndAccountId(transactionDto.cardId(), accountId)) {
+            throw new RuntimeException("Card not found or not valid for this account");
+        }
+
+        Transaction transaction = Transaction.builder()
+                .accountId(accountId)
+                .amount(transactionDto.amount())
+                .date(transactionDto.date())
+                .description(transactionDto.description())
+                .build();
+
+        wallet.setBalance(wallet.getBalance().add(transactionDto.amount()));
+        walletRepository.save(wallet);
+        walletRepository.save(transaction);
     }
 }

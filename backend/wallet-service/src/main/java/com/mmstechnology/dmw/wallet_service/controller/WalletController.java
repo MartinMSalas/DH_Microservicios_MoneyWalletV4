@@ -6,6 +6,7 @@ import com.mmstechnology.dmw.wallet_service.service.IWalletService;
 import com.mmstechnology.dmw.wallet_service.service.ICardService;
 import com.mmstechnology.dmw.wallet_service.model.Card;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -134,5 +135,20 @@ public class WalletController {
         log.info("Fetching details for activity with id: {} in account with id: {}", transferenceID, accountId);
         TransactionDto activityDetails = walletService.getActivityDetails(accountId, transferenceID);
         return ResponseEntity.ok(activityDetails);
+    }
+
+    @PostMapping("/accounts/{accountId}/transferences")
+    public ResponseEntity<?> registerMoneyIncome(@PathVariable String accountId, @RequestBody TransactionDto transactionDto) {
+        log.info("Registering money income for account with id: {}", accountId);
+        try {
+            walletService.registerMoneyIncome(accountId, transactionDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Money income registered successfully.");
+        } catch (InvalidTransactionException e) {
+            log.warn("Invalid transaction data: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid transaction data: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error registering money income for account with id {}.", accountId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to register money income: " + e.getMessage());
+        }
     }
 }

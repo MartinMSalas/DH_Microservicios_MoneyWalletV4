@@ -5,6 +5,7 @@ import com.mmstechnology.dmw.wallet_service.model.Wallet;
 import com.mmstechnology.dmw.wallet_service.model.dto.TransactionDto;
 import com.mmstechnology.dmw.wallet_service.model.dto.WalletDto;
 import com.mmstechnology.dmw.wallet_service.repository.WalletRepository;
+import com.mmstechnology.dmw.wallet_service.repository.CardRepository;
 import com.mmstechnology.dmw.wallet_service.service.impl.WalletServiceImpl;
 import com.mmstechnology.dmw.wallet_service.util.mapper.TransactionMapper;
 import com.mmstechnology.dmw.wallet_service.util.mapper.WalletMapper;
@@ -27,6 +28,9 @@ public class WalletServiceTest {
 
     @Mock
     private WalletRepository walletRepository;
+
+    @Mock
+    private CardRepository cardRepository;
 
     @InjectMocks
     private WalletServiceImpl walletService;
@@ -107,6 +111,24 @@ public class WalletServiceTest {
         assertEquals(walletDto.alias(), wallet.getAlias());
         assertEquals(walletDto.balance(), wallet.getBalance());
         verify(walletRepository, times(1)).findById(accountId);
+        verify(walletRepository, times(1)).save(wallet);
+    }
+
+    @Test
+    public void testRegisterMoneyIncome() {
+        String accountId = "test-account-id";
+        TransactionDto transactionDto = new TransactionDto(1L, new BigDecimal("100.00"), LocalDateTime.now(), "Test transaction");
+
+        Wallet wallet = new Wallet(accountId, "test-user-id", "test-cvu", "test-alias", new BigDecimal("100.00"), "ARS", null, null, null);
+        when(walletRepository.findById(accountId)).thenReturn(Optional.of(wallet));
+        when(cardRepository.existsByIdAndAccountId(transactionDto.cardId(), accountId)).thenReturn(true);
+
+        walletService.registerMoneyIncome(accountId, transactionDto);
+
+        assertEquals(new BigDecimal("200.00"), wallet.getBalance());
+        verify(walletRepository, times(1)).findById(accountId);
+        verify(cardRepository, times(1)).existsByIdAndAccountId(transactionDto.cardId(), accountId);
+        verify(walletRepository, times(1)).save(any(Transaction.class));
         verify(walletRepository, times(1)).save(wallet);
     }
 
