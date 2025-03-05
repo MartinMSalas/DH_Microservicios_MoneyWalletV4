@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -64,6 +61,15 @@ public class UserKeycloakController {
             throw new RuntimeException(e);
         }
 
+    }
+
+    // Create a keycloak login with username and email
+    @GetMapping("/")
+    public ResponseEntity<?> login(@RequestBody CompositeUserDTO userDTO) {
+        // log in user and password to obtain a keycloak token
+        String token = userKeycloakService.login(userDTO);
+
+        return new ResponseEntity<>(token, HttpStatus.OK);
     }
 
 }

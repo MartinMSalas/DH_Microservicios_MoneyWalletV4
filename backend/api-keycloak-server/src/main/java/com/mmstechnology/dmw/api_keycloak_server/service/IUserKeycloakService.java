@@ -13,4 +13,5 @@ public interface IUserKeycloakService {
 
     Optional<CompositeUserDTO> createUser(CompositeUserDTO userDTO) throws JsonProcessingException;
 
+    String login(CompositeUserDTO userDTO);
 }

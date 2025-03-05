@@ -53,6 +53,9 @@ public class KeycloakServiceImpl3 implements IKeycloakService {
         log.info("Searching users with username: {}", username);
         RealmResource realm = KeycloakProviderV2.getRealmResource();
         List<UserRepresentation> users = realm.users().searchByUsername(username, true);
+        List<?> stats = realm.getClientSessionStats();
+        List<?> adminEvents = realm.getAdminEvents();
+        List<?> events = realm.getEvents();
 
         List<Set<String>> userRoles = users.stream()
                 .map(user -> realm.users().get(user.getId()).roles().realmLevel().listEffective()

@@ -85,5 +85,18 @@ public class UserKeycloakServiceImpl implements IUserKeycloakService {
         return Optional.of(compositeUserDTO);
     }
 
+    @Override
+    public String login(CompositeUserDTO userDTO) {
+        List<KeycloakUser> kUsers = keycloakService.searchUserByUsername(userDTO.username());
+        if (kUsers.isEmpty()) {
+            log.error("User {} not found in keycloak.", userDTO.username());
+            throw new UserCreationException("User not found in keycloak.");
+        }
+        String userId = kUsers.get(0).userId();
+
+
+        return "";
+    }
+
 
 }

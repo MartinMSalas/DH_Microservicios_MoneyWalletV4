@@ -1,0 +1,60 @@
+create database micro_mms_digital_money_wallet_user_service;
+use micro_mms_digital_money_wallet_user_service;
+CREATE TABLE database_user (
+  user_id VARCHAR(36) NOT NULL,
+  image LONGBLOB,
+  phone_number VARCHAR(20),
+  last_login DATETIME,
+  failed_attempts INT,
+  wallet VARCHAR(36),
+  create_dt DATETIME(6) NOT NULL,
+  update_dt DATETIME(6),
+  version INT,
+  PRIMARY KEY (user_id)
+) ENGINE=InnoDB;
+
+
+
+create database micro_mms_digital_money_wallet_wallet_service;
+use micro_mms_digital_money_wallet_wallet_service;
+
+CREATE TABLE cvu (
+  cvu_id BIGINT NOT NULL AUTO_INCREMENT,
+  cvu VARCHAR(22) NOT NULL UNIQUE,
+  wallet VARCHAR(36),
+  create_dt DATETIME NOT NULL,
+  update_dt DATETIME NOT NULL,
+  version INT,
+  PRIMARY KEY (cvu_id)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE `alias` (
+  `alias_id` BIGINT NOT NULL AUTO_INCREMENT,
+  `alias` VARCHAR(36) NOT NULL,
+  `wallet` VARCHAR(36) DEFAULT NULL,
+  `create_dt` DATETIME DEFAULT NULL,
+  `update_dt` DATETIME DEFAULT NULL,
+  `version` INT DEFAULT NULL,
+  PRIMARY KEY (`alias_id`)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS wallet;
+
+CREATE TABLE wallet (
+  wallet_id VARCHAR(36) NOT NULL,
+  user_id   VARCHAR(36) NOT NULL,
+  cvu       VARCHAR(22),
+  alias     VARCHAR(36),
+  balance   DECIMAL(19,4) NOT NULL,
+  currency  VARCHAR(3) NOT NULL DEFAULT 'ARS',
+  create_dt DATETIME,
+  update_dt DATETIME,
+  version   INT,
+  PRIMARY KEY (wallet_id)
+);
+
+
+
+
+
